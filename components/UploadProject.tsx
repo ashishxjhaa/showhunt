@@ -10,7 +10,7 @@ import axios from 'axios'
 import { Spinner } from '@/components/ui/spinner'
 
 
-function UploadProject() {
+function UploadProject({ onSuccess }: { onSuccess?: () => void }) {
     const [open, setOpen] = useState(false)
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const tags = ['SaaS', 'Productivity', 'AI', 'Fintech', 'E-commerce', 'Others']
@@ -44,12 +44,12 @@ function UploadProject() {
     
         toast.success('Project uploaded successfully!')
         setOpen(false)
-        // Reset form
         setName('')
         setDescription('')
         setLink('')
         setLogo('')
         setSelectedTags([])
+        onSuccess?.()
     } catch (error) {
         console.log(error)
         toast.error('Failed to upload project')

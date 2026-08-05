@@ -2,7 +2,7 @@
 
 import { ArrowBigUp, Bookmark, Heart, Layers, User, SquareArrowOutUpRight, Tags } from "lucide-react"
 import Back from "./Back"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import axios from "axios"
 import UploadProject from "./UploadProject"
 import Image from "next/image"
@@ -26,33 +26,60 @@ interface Project {
     createdAt: Date
 }
 
+function computeStats(projects: Project[]) {
+    return {
+        projects: projects.length,
+        upvotes: projects.reduce((sum, p) => sum + p.upvotes, 0),
+        hearts: projects.reduce((sum, p) => sum + p.hearts, 0),
+        saves: projects.reduce((sum, p) => sum + p.saves, 0),
+    }
+}
+
 const Page = () => {
 
     const { setProjects: setGlobalProjects, updateProject } = useProjectStore()
 
     const [user, setUser] = useState({ fullName: '', createdAt: '' })
-    const [stats, setStats] = useState({ projects: 0, upvotes: 0, hearts: 0, saves: 0 })
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        axios.get('/api/me').then(res => setUser(res.data.user))
-        axios.get('/api/uploadproject').then(res => {
-            setStats(res.data.stats)
+    const stats = useMemo(() => computeStats(projects), [projects])
+
+    const fetchProjects = useCallback(async () => {
+        try {
+            const res = await axios.get('/api/uploadproject')
             setProjects(res.data.projects)
             setGlobalProjects(res.data.projects)
+        } catch (error) {
+            console.log(error)
+        } finally {
             setLoading(false)
-        })
-    }, [])
+        }
+    }, [setGlobalProjects])
+
+    useEffect(() => {
+        axios.get('/api/me').then(res => setUser(res.data.user))
+        fetchProjects()
+    }, [fetchProjects])
+
+    useEffect(() => {
+        const interval = setInterval(fetchProjects, 15000)
+        const onFocus = () => fetchProjects()
+        window.addEventListener('focus', onFocus)
+        return () => {
+            clearInterval(interval)
+            window.removeEventListener('focus', onFocus)
+        }
+    }, [fetchProjects])
 
     const handleUpvote = async (projectId: string) => {
         const project = projects.find(p => p.id === projectId)!
         const optimisticUpdate = {
             hasUpvoted: !project.hasUpvoted,
-            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1)
+            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1),
         }
-    
-        setProjects(projects.map(p => 
+
+        setProjects(prev => prev.map(p =>
             p.id === projectId ? { ...p, ...optimisticUpdate } : p
         ))
         updateProject(projectId, optimisticUpdate)
@@ -60,7 +87,7 @@ const Page = () => {
         try {
             await axios.post(`/api/projects/${projectId}/upvote`)
         } catch (error) {
-            setProjects(projects.map(p => 
+            setProjects(prev => prev.map(p =>
                 p.id === projectId ? project : p
             ))
             updateProject(projectId, { hasUpvoted: project.hasUpvoted, upvotes: project.upvotes })
@@ -72,10 +99,10 @@ const Page = () => {
         const project = projects.find(p => p.id === projectId)!
         const optimisticUpdate = {
             hasHearted: !project.hasHearted,
-            hearts: project.hearts + (project.hasHearted ? -1 : 1)
+            hearts: project.hearts + (project.hasHearted ? -1 : 1),
         }
-    
-        setProjects(projects.map(p => 
+
+        setProjects(prev => prev.map(p =>
             p.id === projectId ? { ...p, ...optimisticUpdate } : p
         ))
         updateProject(projectId, optimisticUpdate)
@@ -83,7 +110,7 @@ const Page = () => {
         try {
             await axios.post(`/api/projects/${projectId}/heart`)
         } catch (error) {
-            setProjects(projects.map(p => 
+            setProjects(prev => prev.map(p =>
                 p.id === projectId ? project : p
             ))
             updateProject(projectId, { hasHearted: project.hasHearted, hearts: project.hearts })
@@ -95,10 +122,10 @@ const Page = () => {
         const project = projects.find(p => p.id === projectId)!
         const optimisticUpdate = {
             hasSaved: !project.hasSaved,
-            saves: project.saves + (project.hasSaved ? -1 : 1)
+            saves: project.saves + (project.hasSaved ? -1 : 1),
         }
-    
-        setProjects(projects.map(p => 
+
+        setProjects(prev => prev.map(p =>
             p.id === projectId ? { ...p, ...optimisticUpdate } : p
         ))
         updateProject(projectId, optimisticUpdate)
@@ -107,7 +134,7 @@ const Page = () => {
         try {
             await axios.post(`/api/projects/${projectId}/save`)
         } catch (error) {
-            setProjects(projects.map(p => 
+            setProjects(prev => prev.map(p =>
                 p.id === projectId ? project : p
             ))
             updateProject(projectId, { hasSaved: project.hasSaved, saves: project.saves })
@@ -146,7 +173,7 @@ const Page = () => {
                     </span>
                 </div>
             </div>
-            <UploadProject />
+            <UploadProject onSuccess={fetchProjects} />
         </div>
 
 
@@ -167,7 +194,7 @@ const Page = () => {
                         <ArrowBigUp size={16} />
                         <span className="text-sm tracking-wider">Upvotes</span>
                     </div>
-                    <p className="text-2xl">{stats.upvotes} vote</p>
+                    <p className="text-2xl">{stats.upvotes} vote{stats.upvotes !== 1 ? 's' : ''}</p>
                     <p className="text-xs mt-2 tracking-wide opacity-50">Dedication level: Good</p>
                 </div>
             </div>
@@ -201,7 +228,7 @@ const Page = () => {
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
-            ) :projects.length > 0 ? (
+            ) : projects.length > 0 ? (
                 <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
                     {projects.map((p: Project) => (
                         <div 
@@ -243,23 +270,26 @@ const Page = () => {
                             <div className="flex gap-3 items-center">
                                 <div 
                                     onClick={() => handleUpvote(p.id)} 
-                                    className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'
+                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer"
                                 >
                                     <ArrowBigUp className={p.hasUpvoted ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
+                                    <span className="text-xs font-medium tabular-nums">{p.upvotes}</span>
                                 </div>     
 
                                 <div 
                                     onClick={() => handleHeart(p.id)} 
-                                    className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'
+                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer"
                                 >
                                     <Heart className={p.hasHearted ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
+                                    <span className="text-xs font-medium tabular-nums">{p.hearts}</span>
                                 </div>
 
                                 <div 
                                     onClick={() => handleSave(p.id)} 
-                                    className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'
+                                    className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer"
                                 >
-                                    <Bookmark className={p.hasSaved ? 'fill-[#FF8162] text-[#FF8162]' : ''} />  
+                                    <Bookmark className={p.hasSaved ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
+                                    <span className="text-xs font-medium tabular-nums">{p.saves}</span>
                                 </div>
                             </div>
                         </div>

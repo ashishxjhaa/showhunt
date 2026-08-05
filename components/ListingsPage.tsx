@@ -9,13 +9,6 @@ import { sortByTrending } from "@/lib/ranking"
 import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
 import ProjectListingCard, { type ListingProject } from "./ProjectListingCard"
 
-interface FeedStats {
-    totalProjects: number
-    totalUpvotes: number
-    totalHearts: number
-    totalSaves: number
-}
-
 interface ListingsPageProps {
     searchQuery: string
     isAuthenticated: boolean
@@ -23,12 +16,6 @@ interface ListingsPageProps {
 
 const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     const [projects, setProjects] = useState<ListingProject[]>([])
-    const [stats, setStats] = useState<FeedStats>({
-        totalProjects: 0,
-        totalUpvotes: 0,
-        totalHearts: 0,
-        totalSaves: 0,
-    })
     const [loading, setLoading] = useState(true)
     const { setProjects: setGlobalProjects, updateProject } = useProjectStore()
     const router = useRouter()
@@ -36,7 +23,6 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     useEffect(() => {
         axios.get('/api/listings').then(res => {
             setProjects(res.data.projects)
-            setStats(res.data.stats)
             setGlobalProjects(res.data.projects)
             setLoading(false)
         }).catch(() => {
@@ -133,45 +119,15 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     }
 
     return (
-        <div className="mx-auto max-w-4xl px-4 pb-16 pt-24 sm:px-6 sm:pt-28">
-            <header className="mb-8">
-                <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white sm:text-3xl">
-                    Discover projects
-                </h1>
-                <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 sm:text-base">
-                    Explore products from developers and founders. Ranked by community engagement.
-                </p>
-
-                {!loading && stats.totalProjects > 0 && (
-                    <div className="mt-5 flex flex-wrap gap-3">
-                        <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900/60">
-                            <span className="text-neutral-500 dark:text-neutral-400">Projects </span>
-                            <span className="font-semibold tabular-nums text-neutral-900 dark:text-white">{stats.totalProjects}</span>
-                        </div>
-                        <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900/60">
-                            <span className="text-neutral-500 dark:text-neutral-400">Upvotes </span>
-                            <span className="font-semibold tabular-nums text-neutral-900 dark:text-white">{stats.totalUpvotes}</span>
-                        </div>
-                        <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900/60">
-                            <span className="text-neutral-500 dark:text-neutral-400">Hearts </span>
-                            <span className="font-semibold tabular-nums text-neutral-900 dark:text-white">{stats.totalHearts}</span>
-                        </div>
-                        <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900/60">
-                            <span className="text-neutral-500 dark:text-neutral-400">Saves </span>
-                            <span className="font-semibold tabular-nums text-neutral-900 dark:text-white">{stats.totalSaves}</span>
-                        </div>
-                    </div>
-                )}
-            </header>
-
+        <div className="py-15 mt-10">
             {loading ? (
-                <div className="grid gap-4">
+                <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
                     {[...Array(5)].map((_, i) => (
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
             ) : filteredProjects.length > 0 ? (
-                <div className="grid gap-4">
+                <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
                     {filteredProjects.map((p, index) => (
                         <ProjectListingCard
                             key={p.id}
@@ -186,13 +142,11 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                     ))}
                 </div>
             ) : projects.length > 0 ? (
-                <p className="text-center text-neutral-600 dark:text-neutral-400">
+                <p className="text-center text-black dark:text-white opacity-85">
                     No projects match your search.
                 </p>
             ) : (
-                <p className="text-center text-neutral-600 dark:text-neutral-400">
-                    No projects yet. Be the first to list yours.
-                </p>
+                <p className="text-center text-black dark:text-white opacity-85">No projects yet</p>
             )}
         </div>
     )

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import { toast } from 'sonner'
-import { Bookmark, ChevronDown, LogOutIcon, Search, User } from 'lucide-react'
+import { Bookmark, ChevronDown, LogOutIcon, User } from 'lucide-react'
 import { AvatarDemo } from './Avatar'
 import { Button } from './ui/button'
 
@@ -66,37 +66,32 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
   }
 
   return (
-    <div className="fixed w-full z-50 border-b border-neutral-200/80 bg-[#F6F6EF]/90 backdrop-blur-md dark:border-neutral-700/80 dark:bg-neutral-900/80">
-      <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link href="/listings" className="flex items-center gap-2 shrink-0">
-          <Image src="/BackIt.svg" alt="BackIt logo" width={32} height={32} className="h-8 w-8 object-contain" />
-          <span className="hidden text-sm font-semibold tracking-wide text-neutral-900 dark:text-white sm:inline">
-            BackIt
-          </span>
+    <div className="fixed w-full z-50 p-4 bg-[#F6F6EF]/70 dark:bg-neutral-800/40 backdrop-blur-md border-b border-gray-600">
+      <div className="flex items-center justify-between sm:mx-12 gap-2">
+        <Link href="/listings">
+          <Image src="/BackIt.svg" alt="BackIt logo" width={45} height={45} className="w-8 h-8 object-contain" />
         </Link>
 
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+        <div className="relative flex-1 max-w-sm mx-4">
           <input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search projects, tags..."
-            className="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-9 pr-3 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#FF8162]/30 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-neutral-500"
+            placeholder="Search projects..."
+            className="w-full placeholder-black dark:placeholder-white focus:outline-none px-3 py-1.5 border border-gray-400 dark:border-gray-600 rounded-md text-black dark:text-white text-sm tracking-wide bg-transparent"
           />
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           {authChecked && user ? (
             <div className="relative" ref={profileRef}>
-              <button
-                type="button"
+              <div
                 onClick={() => setOpenProfile(true)}
-                className="flex items-center gap-0.5 text-black dark:text-white"
+                className="flex items-center gap-0.5 text-black dark:text-white cursor-pointer"
               >
                 <AvatarDemo />
                 <ChevronDown size={20} />
-              </button>
+              </div>
 
               {openProfile && (
                 <div className="absolute top-full right-0 mt-2 w-fit z-50">
@@ -107,8 +102,11 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
                           {user.fullName?.[0]}
                         </div>
                       </div>
+
                       <div>
-                        <p className="text-base truncate text-black tracking-wide">{user.fullName?.split(' ')[0]}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-base truncate text-black tracking-wide">{user.fullName?.split(' ')[0]}</p>
+                        </div>
                         <p className="text-xs text-black/80 truncate tracking-wide">{user.email}</p>
                       </div>
                     </div>
@@ -122,7 +120,7 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
 
                     <div onClick={() => router.push("/saved")} className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-md hover:bg-accent dark:hover:bg-accent/50 text-sm">
                       <Bookmark size={16} />
-                      <span className="tracking-wide whitespace-nowrap">Saved Projects</span>
+                      <span className="tracking-wide whitespace-nowrap">Saved Project</span>
                     </div>
 
                     <div className="border-t border-black dark:border-white/50">
@@ -138,7 +136,7 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
           ) : authChecked ? (
             <>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/signin" className="font-light">Log in</Link>
+                <Link href="/signin" className="font-light bg-white text-black dark:text-white">Log in</Link>
               </Button>
               <Button variant="default" size="sm" asChild>
                 <Link href="/signup">Register</Link>

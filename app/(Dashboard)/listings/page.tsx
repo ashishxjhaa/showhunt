@@ -16,7 +16,7 @@ const Listings = () => {
   }, [])
 
   return (
-    <div className="bg-[#F6F6EF] dark:bg-neutral-950 min-h-screen w-full overflow-x-hidden">
+    <div className="bg-[#F6F6EF] dark:bg-neutral-800 min-h-screen w-full overflow-x-hidden">
       <ListingNavbar search={search} onSearchChange={setSearch} />
       <ListingsPage searchQuery={search} isAuthenticated={isAuthenticated} />
     </div>
