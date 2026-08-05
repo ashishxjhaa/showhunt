@@ -1,4 +1,4 @@
-import { ChartColumn, RadioTower, Clock, Plus, CodeXml, Rocket, Users } from "lucide-react";
+import { ChartColumn, RadioTower, Bookmark, Plus, Heart, Rocket, Users } from "lucide-react";
 
 
 
@@ -10,12 +10,12 @@ export default function Stats() {
             <div className="container px-4 md:px-6 mx-auto">
                 <div className="mb-12 text-center">
                     <h2 className="opacity-90 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Trusted by Innovators Worldwide</h2>
-                    <p className="mx-auto mt-4 max-w-[700px] md:text-xl opacity-75 tracking-wide">Join thousands of creators who are launching their ideas and getting funded together.</p>
+                    <p className="mx-auto mt-4 max-w-[700px] md:text-xl opacity-75 tracking-wide">Join developers and founders who are launching products and building community engagement.</p>
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="rounded-xl border bg-slate-50 dark:bg-neutral-700 shadow-lg">
                         <div className="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
-                            <div className="text-sm font-normal">Active Creators</div>
+                            <div className="text-sm font-normal">Projects Listed</div>
                             <Users className="h-5 w-5 text-[#FF8162]" />
                         </div>
                         <div className="p-6 pt-0">
@@ -26,34 +26,34 @@ export default function Stats() {
                 
                     <div className="rounded-xl border bg-slate-50 dark:bg-neutral-700 shadow-lg">
                         <div className="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
-                            <div className="text-sm font-normal">Total Funded</div>
-                            <Clock className="h-5 w-5 text-[#FF8162]" />
-                        </div>
-                        <div className="p-6 pt-0">
-                            <div className="text-2xl font-bold tracking-wide">$2.5M+</div>
-                            <div className="text-sm tracking-wide opacity-65 font-light">Capital raised for innovative ideas</div>
-                        </div>
-                    </div>
-                    
-                    <div className="rounded-xl border bg-slate-50 dark:bg-neutral-700 shadow-lg">
-                        <div className="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
-                            <div className="text-sm font-normal">Success Rate</div>
-                            <CodeXml className="h-5 w-5 text-[#FF8162]" />
-                        </div>
-                        <div className="p-6 pt-0">
-                            <div className="text-2xl font-bold tracking-wide">78%</div>
-                            <div className="text-sm tracking-wide opacity-65 font-light">Projects reaching funding goals</div>
-                        </div>
-                    </div>
-                    
-                    <div className="rounded-xl border bg-slate-50 dark:bg-neutral-700 shadow-lg">
-                        <div className="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
-                            <div className="text-sm font-normal">Active Backers</div>
+                            <div className="text-sm font-normal">Community Upvotes</div>
                             <ChartColumn className="h-5 w-5 text-[#FF8162]" />
                         </div>
                         <div className="p-6 pt-0">
+                            <div className="text-2xl font-bold tracking-wide">50k+</div>
+                            <div className="text-sm tracking-wide opacity-65 font-light">Upvotes cast by the community</div>
+                        </div>
+                    </div>
+                    
+                    <div className="rounded-xl border bg-slate-50 dark:bg-neutral-700 shadow-lg">
+                        <div className="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
+                            <div className="text-sm font-normal">Hearts Given</div>
+                            <Heart className="h-5 w-5 text-[#FF8162]" />
+                        </div>
+                        <div className="p-6 pt-0">
+                            <div className="text-2xl font-bold tracking-wide">30k+</div>
+                            <div className="text-sm tracking-wide opacity-65 font-light">Hearts shared across projects</div>
+                        </div>
+                    </div>
+                    
+                    <div className="rounded-xl border bg-slate-50 dark:bg-neutral-700 shadow-lg">
+                        <div className="space-y-1.5 p-6 flex flex-row items-center justify-between pb-2">
+                            <div className="text-sm font-normal">Projects Saved</div>
+                            <Bookmark className="h-5 w-5 text-[#FF8162]" />
+                        </div>
+                        <div className="p-6 pt-0">
                             <div className="text-2xl font-bold tracking-wide">10k+</div>
-                            <div className="text-sm tracking-wide opacity-65 font-light">Investors supporting creative ventures</div>
+                            <div className="text-sm tracking-wide opacity-65 font-light">Projects bookmarked by users</div>
                         </div>
                     </div>
                 </div>
@@ -74,7 +74,7 @@ export default function Stats() {
                                     <Plus className="h-8 w-8 text-[#FF8162]" />
                                 </div>
                                 <h3 className="mb-2 text-xl font-semibold">Create Your Account</h3>
-                                <p className="font-light tracking-wide opacity-70">Sign up on BackIt web app and set up your creator profile with your project details.</p>
+                                <p className="font-light tracking-wide opacity-70">Sign up on BackIt and set up your profile to start listing projects.</p>
                             </div>
                         </div>
 
@@ -83,8 +83,8 @@ export default function Stats() {
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-[#4E383B]">
                                     <Rocket className="h-8 w-8 text-[#FF8162]" />
                                 </div>
-                                <h3 className="mb-2 text-xl font-semibold">Launch Your Campaignn</h3>
-                                <p className="font-light tracking-wide opacity-70">Build your project page with description, funding goals, and rewards for your backers.</p>
+                                <h3 className="mb-2 text-xl font-semibold">List Your Project</h3>
+                                <p className="font-light tracking-wide opacity-70">Add your project with a name, description, link, logo, and tags.</p>
                             </div>
                         </div>
                         
@@ -93,8 +93,8 @@ export default function Stats() {
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-[#4E383B]">
                                     <RadioTower className="h-8 w-8 text-[#FF8162]" />
                                 </div>
-                                <h3 className="mb-2 text-xl font-semibold">Go Live & Share</h3>
-                                <p className="font-light tracking-wide opacity-70">Publish your campaign and share it with potential backers to start receiving funding immediately.</p>
+                                <h3 className="mb-2 text-xl font-semibold">Share & Engage</h3>
+                                <p className="font-light tracking-wide opacity-70">Publish your listing and share it with the community to collect upvotes, hearts, and saves.</p>
                             </div>
                         </div>
                     </div>

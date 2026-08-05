@@ -12,7 +12,7 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: "BackIt - A launch platform for your products | BackIt",
-  description: "Bring your vision to life. The platform where innovators meet investors and great projects get funded.",
+  description: "BackIt is a product launch platform where developers and founders list projects, get discovered, and receive community engagement through upvotes, hearts, and saves.",
   icons: {
     icon: "/BackIt.svg"
   },

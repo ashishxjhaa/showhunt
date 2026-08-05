@@ -8,33 +8,33 @@ import {
 const faqs = [
   {
     value: "item-1",
-    question: "How can I apply for Back It?",
-    answer: "You just need to sign up, create your project profile, and submit your funding request with basic details.",
+    question: "How do I list my project on BackIt?",
+    answer: "Sign up, go to your profile, and submit your project with a name, description, link, logo, and tags.",
   },
   {
     value: "item-2",
-    question: "Who can request funding on this platform?",
-    answer: "Anyone with a clear project or even idea, whether individual or team, can request funding through our platform.",
+    question: "Who can list projects on BackIt?",
+    answer: "Any developer or founder with a product or project to share, whether as an individual or a team.",
   },
   {
     value: "item-3",
-    question: "Is there a limit to how much funding I can ask for?",
-    answer: "No strict limit. You can request any amount, but your chances improve if your request is realistic and well explained.",
+    question: "Is BackIt free to use?",
+    answer: "Yes. Listing your project and engaging with the community is free.",
   },
   {
     value: "item-4",
-    question: "How do investors decide to fund my project?",
-    answer: "Investors review your project details, goals, and plan. If they find it promising, they can provide funding directly.",
+    question: "How do upvotes, hearts, and saves work?",
+    answer: "Users can upvote to signal interest, heart to show support, or save to bookmark a project for later. All three are visible on each project card.",
   },
   {
     value: "item-5",
-    question: "Do I need to pay any fees to raise funds?",
-    answer: "No upfront fees. A small service charge applies only when your project successfully receives funding.",
+    question: "How do I get discovered on BackIt?",
+    answer: "Share your listing link, use relevant tags, and engage with the community. Projects with more upvotes, hearts, and saves gain more visibility in the feed.",
   },
   {
     value: "item-6",
-    question: "How will I get the funds once approved?",
-    answer: "Funds are transferred securely to your registered account after approval from the investor.",
+    question: "Can I save projects I'm interested in?",
+    answer: "Yes. Click the save icon on any project to bookmark it. View all saved projects from the Saved page in your dashboard.",
   },
 ];
   

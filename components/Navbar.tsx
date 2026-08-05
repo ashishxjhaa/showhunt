@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { GoHome } from "react-icons/go";
-import { Megaphone } from 'lucide-react';
 import { LuCircleFadingPlus } from "react-icons/lu";
 import { Button } from "./ui/button";
 
@@ -27,10 +26,6 @@ export default function Navbar() {
                     <Link href='/listings' className="flex items-center gap-2 opacity-80 hover:opacity-100 cursor-pointer">
                         <GoHome size={20} />
                         <span>Home</span>
-                    </Link>
-                    <Link href='/pricing' className="flex items-center gap-2 opacity-80 hover:opacity-100 cursor-pointer">
-                        <Megaphone size={19} className="rotate-y-180" />
-                        <span>Pricing</span>
                     </Link>
                     <Link href='/profile' className="flex items-center gap-2 opacity-80 hover:opacity-100 cursor-pointer">
                         <LuCircleFadingPlus size={19} />

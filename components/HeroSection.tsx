@@ -22,17 +22,17 @@ export default function HeroSection() {
                 className="dark:bg-neutral-800 hover:dark:bg-neutral-900 hover:bg-gray-50 bg-white text-black dark:text-white flex items-center space-x-2 cursor-pointer"
             >
                 <BackitLogo />
-                <span>Ideas deserve funding</span>
+                <span>Launch your product</span>
             </HoverBorderGradient>
             <div className="text-black dark:text-white text-center max-w-md md:max-w-2xl flex flex-col gap-5">
-                <h1 className="font-normal sm:font-medium -tracking-normal text-lg sm:text-4xl md:text-6xl pt-10 leading-tight opacity-85 dark:opacity-100">Every project funded, one click away.</h1>
+                <h1 className="font-normal sm:font-medium -tracking-normal text-lg sm:text-4xl md:text-6xl pt-10 leading-tight opacity-85 dark:opacity-100">Launch your product. Get discovered.</h1>
                 <p className="font-light leading-relaxed px-12 sm:px-0 text-xs sm:text-base">
-                    From concept to cash in minutes. Launch your ideas, connect with backers. <br className="hidden md:block" /> The simplest way to fund what matters.
+                    BackIt is a product launch platform — where developers and founders can list their projects, get discovered, and receive community engagement through upvotes, hearts, and saves.
                 </p>
             </div>
             <div className="flex flex-col sm:flex-row items-start gap-6 pt-10 sm:pt-15">
                 <Button variant='default' asChild>
-                    <Link href="/product" className="cursor-default px-8!">List your project <IoArrowForward /> </Link>
+                    <Link href="/profile" className="cursor-default px-8!">List your project <IoArrowForward /> </Link>
                 </Button>
                 <div className="flex flex-col gap-2 text-black dark:text-white">
                     <AnimatedTooltipPreview />
