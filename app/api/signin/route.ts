@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-import { signinSchema } from "@/lib/auth";
+import {
+    AUTH_COOKIE_MAX_AGE,
+    AUTH_COOKIE_NAME,
+    createAuthToken,
+    signinSchema,
+} from "@/lib/auth";
 
 export async function POST(req: Request) {
     try {
@@ -28,23 +32,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid password" }, { status: 400 });
         }
 
-        const token = jwt.sign(
-            { userId: user.id },
-            process.env.JWT_SECRET!,
-            { expiresIn: "5d", }
-        );
+        const token = await createAuthToken(user.id);
 
         const res = NextResponse.json(
-            { message: "Signin successful" }, 
+            { message: "Signin successful" },
             { status: 200 }
         );
 
-        res.cookies.set("token", token, {
+        res.cookies.set(AUTH_COOKIE_NAME, token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
-            maxAge: 60 * 60 * 24 * 5,
+            maxAge: AUTH_COOKIE_MAX_AGE,
         });
 
         return res;

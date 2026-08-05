@@ -8,7 +8,6 @@ import { Button } from "./ui/button";
 import axios from "axios";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner"
 
 
@@ -20,8 +19,6 @@ export default function SignIn() {
 
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter();
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -32,12 +29,12 @@ export default function SignIn() {
 
     setLoading(true);
     try {
-      await axios.post("/api/signin", formData, { withCredentials: true, });
+      await axios.post("/api/signin", formData, { withCredentials: true });
       toast.success("Welcome to Back It 🎉");
-      router.push('/listings');
+      // Full navigation ensures the auth cookie is sent before middleware runs.
+      window.location.assign("/listings");
     } catch (err) {
       toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Signin failed");
-    } finally {
       setLoading(false);
     }
   };
