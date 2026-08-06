@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+
+<img src="public/BackIt.svg" alt="BackIt" width="72" />
+
+# BackIt
+
+**Launch your product. Get discovered.**
+
+A product launch platform where developers and founders list projects, get discovered, and receive community engagement through upvotes, hearts, and saves.
+
+[![Live Demo](https://shieldcn.dev/badge/demo-live-FF8162.svg?logo=vercel)](https://back-it-two.vercel.app)
+[![GitHub stars](https://shieldcn.dev/github/stars/ashishxjhaa/BackIt.svg?variant=outline)](https://github.com/ashishxjhaa/BackIt/stargazers)
+[![GitHub forks](https://shieldcn.dev/github/forks/ashishxjhaa/BackIt.svg?variant=outline)](https://github.com/ashishxjhaa/BackIt/network/members)
+[![GitHub issues](https://shieldcn.dev/github/issues/ashishxjhaa/BackIt.svg?variant=outline)](https://github.com/ashishxjhaa/BackIt/issues)
+
+[Live Demo](https://back-it-two.vercel.app) · [Report Bug](https://github.com/ashishxjhaa/BackIt/issues) · [Request Feature](https://github.com/ashishxjhaa/BackIt/issues)
+
+</div>
+
+---
+
+## Preview
+
+<table>
+  <tr>
+    <td align="center"><strong>Landing</strong></td>
+    <td align="center"><strong>Listings</strong></td>
+    <td align="center"><strong>Sign In</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/landing.png" alt="BackIt landing page" width="100%" /></td>
+    <td><img src="docs/screenshots/listings.png" alt="BackIt listings feed" width="100%" /></td>
+    <td><img src="docs/screenshots/signin.png" alt="BackIt sign in page" width="100%" /></td>
+  </tr>
+</table>
+
+## Features
+
+- **Project listings** — browse a trending feed and search by name, description, tags, or maker
+- **Upload projects** — list with a name, description, live link, logo, and up to 3 tags
+- **Engagement** — upvote, heart, and save projects with optimistic UI updates
+- **Trending ranking** — projects ranked by `upvotes × 3 + hearts × 2 + saves`
+- **User profiles** — dashboard with engagement stats and your listed projects
+- **Saved projects** — bookmark projects and revisit them later
+- **Authentication** — JWT in httpOnly cookies with bcrypt-hashed passwords
+- **Dark mode** — system-aware theme with manual toggle
+
+## Tech Stack
+
+Built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Prisma 7, PostgreSQL (Neon), TanStack Query, shadcn/ui, Zod, and Motion.
+
+<div align="center">
+
+![Next.js](https://shieldcn.dev/badge/Next.js-16.3-black.svg?logo=nextdotjs&variant=secondary&size=sm)
+![React](https://shieldcn.dev/badge/React-19.2-blue.svg?logo=react&variant=secondary&size=sm)
+![TypeScript](https://shieldcn.dev/badge/TypeScript-5-blue.svg?logo=typescript&variant=secondary&size=sm)
+![Prisma](https://shieldcn.dev/badge/Prisma-7.1-2D3748.svg?logo=prisma&variant=secondary&size=sm)
+![Tailwind CSS](https://shieldcn.dev/badge/Tailwind-4-38BDF8.svg?logo=tailwindcss&variant=secondary&size=sm)
+![PostgreSQL](https://shieldcn.dev/badge/Neon-PostgreSQL-336791.svg?logo=postgresql&variant=secondary&size=sm)
+![Bun](https://shieldcn.dev/badge/Bun-runtime-black.svg?logo=bun&variant=secondary&size=sm)
+
+</div>
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- [Bun](https://bun.sh/) (recommended) or Node.js 20+
+- PostgreSQL database ([Neon](https://neon.tech/) recommended)
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/ashishxjhaa/BackIt.git
+cd BackIt
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env` file in the project root (see [Environment Variables](#environment-variables)):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set up the database and start the dev server:
 
-## Learn More
+```bash
+bunx prisma db push
+bun run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> **Note:** `npm`, `yarn`, and `pnpm` also work — replace `bun` / `bunx` with your package manager of choice.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables
 
-## Deploy on Vercel
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string (Neon recommended) |
+| `JWT_SECRET` | Yes | Secret for signing and verifying JWT tokens |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command | Description |
+|---------|-------------|
+| `bun run dev` | Start the development server on port 3000 |
+| `bun run build` | Generate Prisma client and create a production build |
+| `bun run start` | Start the production server |
+| `bun run lint` | Run ESLint |
+
+## Project Structure
+
+```
+BackIt/
+├── app/                    # Next.js App Router pages and API routes
+│   ├── (Authentication)/   # Sign in and sign up
+│   ├── (Dashboard)/        # Listings, profile, and saved pages
+│   └── api/                # REST API endpoints
+├── components/             # React components (UI, pages, forms)
+│   └── ui/                 # shadcn/ui primitives
+├── lib/                    # Auth, Prisma, ranking, React Query hooks
+├── prisma/                 # Schema and migrations
+├── public/                 # Static assets (logo, images)
+└── middleware.ts           # JWT auth middleware
+```
+
+## Routes
+
+| Route | Auth | Description |
+|-------|------|-------------|
+| `/` | Public | Landing page |
+| `/listings` | Public browse | Trending project feed |
+| `/profile` | Required | User profile and project upload |
+| `/saved` | Required | Bookmarked projects |
+| `/signin` | Public | Sign in |
+| `/signup` | Public | Create an account |
+
+## Trending Algorithm
+
+Projects in the listings feed are ranked by engagement score:
+
+```
+score = upvotes × 3 + hearts × 2 + saves
+```
+
+Ties are broken by creation date (newest first). See [`lib/ranking.ts`](lib/ranking.ts).
+
+## Deployment
+
+BackIt is deployed on [Vercel](https://vercel.com/). To deploy your own instance:
+
+1. Push the repo to GitHub
+2. Import the project in Vercel
+3. Set `DATABASE_URL` and `JWT_SECRET` environment variables
+4. Run `prisma db push` against your production database
+
+## Author
+
+**Ashish** — [GitHub](https://github.com/ashishxjhaa)
+
+---
+
+<div align="center">
+
+Built with [shieldcn](https://shieldcn.dev) badges
+
+</div>
