@@ -161,8 +161,4 @@ BackIt is deployed on [Vercel](https://vercel.com/). To deploy your own instance
 
 ---
 
-<div align="center">
 
-Built with [shieldcn](https://shieldcn.dev) badges
-
-</div>
