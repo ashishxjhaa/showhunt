@@ -2,29 +2,13 @@
 
 import { ArrowBigUp, Bookmark, Heart, Layers, User, SquareArrowOutUpRight, Tags } from "lucide-react"
 import Back from "./Back"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import axios from "axios"
+import { useMemo } from "react"
 import UploadProject from "./UploadProject"
 import Image from "next/image"
-import { toast } from "sonner"
-import { useProjectStore } from "@/lib/store"
+import { useMe, useProfileProjects } from "@/lib/queries/hooks"
+import { useProfileMutations } from "@/lib/queries/mutations"
 import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
-
-interface Project {
-    id: string
-    name: string
-    description: string
-    link: string
-    logoUrl: string
-    tags: string[]
-    upvotes: number
-    hearts: number
-    saves: number
-    hasUpvoted: boolean
-    hasHearted: boolean
-    hasSaved: boolean
-    createdAt: Date
-}
+import type { Project } from "@/lib/queries/types"
 
 function computeStats(projects: Project[]) {
     return {
@@ -36,118 +20,21 @@ function computeStats(projects: Project[]) {
 }
 
 const Page = () => {
+    const { data: user } = useMe()
+    const { data, isLoading } = useProfileProjects()
+    const { upvote, heart, save } = useProfileMutations()
 
-    const { setProjects: setGlobalProjects, updateProject } = useProjectStore()
-
-    const [user, setUser] = useState({ fullName: '', createdAt: '' })
-    const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(true)
-
+    const projects = data?.projects ?? []
     const stats = useMemo(() => computeStats(projects), [projects])
 
-    const fetchProjects = useCallback(async () => {
-        try {
-            const res = await axios.get('/api/uploadproject')
-            setProjects(res.data.projects)
-            setGlobalProjects(res.data.projects)
-        } catch (error) {
-            console.log(error)
-        } finally {
-            setLoading(false)
-        }
-    }, [setGlobalProjects])
-
-    useEffect(() => {
-        axios.get('/api/me').then(res => setUser(res.data.user))
-        fetchProjects()
-    }, [fetchProjects])
-
-    useEffect(() => {
-        const interval = setInterval(fetchProjects, 15000)
-        const onFocus = () => fetchProjects()
-        window.addEventListener('focus', onFocus)
-        return () => {
-            clearInterval(interval)
-            window.removeEventListener('focus', onFocus)
-        }
-    }, [fetchProjects])
-
-    const handleUpvote = async (projectId: string) => {
-        const project = projects.find(p => p.id === projectId)!
-        const optimisticUpdate = {
-            hasUpvoted: !project.hasUpvoted,
-            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1),
-        }
-
-        setProjects(prev => prev.map(p =>
-            p.id === projectId ? { ...p, ...optimisticUpdate } : p
-        ))
-        updateProject(projectId, optimisticUpdate)
-
-        try {
-            await axios.post(`/api/projects/${projectId}/upvote`)
-        } catch (error) {
-            setProjects(prev => prev.map(p =>
-                p.id === projectId ? project : p
-            ))
-            updateProject(projectId, { hasUpvoted: project.hasUpvoted, upvotes: project.upvotes })
-            console.log(error)
-        }
-    }
-
-    const handleHeart = async (projectId: string) => {
-        const project = projects.find(p => p.id === projectId)!
-        const optimisticUpdate = {
-            hasHearted: !project.hasHearted,
-            hearts: project.hearts + (project.hasHearted ? -1 : 1),
-        }
-
-        setProjects(prev => prev.map(p =>
-            p.id === projectId ? { ...p, ...optimisticUpdate } : p
-        ))
-        updateProject(projectId, optimisticUpdate)
-
-        try {
-            await axios.post(`/api/projects/${projectId}/heart`)
-        } catch (error) {
-            setProjects(prev => prev.map(p =>
-                p.id === projectId ? project : p
-            ))
-            updateProject(projectId, { hasHearted: project.hasHearted, hearts: project.hearts })
-            console.log(error)
-        }
-    }
-
-    const handleSave = async (projectId: string) => {
-        const project = projects.find(p => p.id === projectId)!
-        const optimisticUpdate = {
-            hasSaved: !project.hasSaved,
-            saves: project.saves + (project.hasSaved ? -1 : 1),
-        }
-
-        setProjects(prev => prev.map(p =>
-            p.id === projectId ? { ...p, ...optimisticUpdate } : p
-        ))
-        updateProject(projectId, optimisticUpdate)
-        toast.success(optimisticUpdate.hasSaved ? 'Project saved!' : 'Project unsaved')
-
-        try {
-            await axios.post(`/api/projects/${projectId}/save`)
-        } catch (error) {
-            setProjects(prev => prev.map(p =>
-                p.id === projectId ? project : p
-            ))
-            updateProject(projectId, { hasSaved: project.hasSaved, saves: project.saves })
-            console.log(error)
-        }
-    }
-
-    const initials = user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()
-    const formattedDate = new Date(user.createdAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    })
+    const initials = user?.fullName.split(' ').map(n => n[0]).join('').toUpperCase() ?? ''
+    const formattedDate = user?.createdAt
+        ? new Date(user.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        })
+        : ''
 
   return (
     <div>
@@ -164,7 +51,7 @@ const Page = () => {
 
             <div className="flex-1">
                 <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-                    <h1 className="text-3xl font-medium tracking-tight text-[#FF8162]">{user.fullName}</h1>
+                    <h1 className="text-3xl font-medium tracking-tight text-[#FF8162]">{user?.fullName ?? ''}</h1>
                 </div>
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground mb-4">
                     <span className="flex items-center gap-3">
@@ -173,7 +60,7 @@ const Page = () => {
                     </span>
                 </div>
             </div>
-            <UploadProject onSuccess={fetchProjects} />
+            <UploadProject />
         </div>
 
 
@@ -222,7 +109,7 @@ const Page = () => {
 
         <div className="py-15">
             <h2 className="text-3xl font-medium tracking-tight text-center sm:text-left sm:mx-14 pb-3 text-[#FF8162]">My Projects</h2>
-            {loading ? (
+            {isLoading ? (
                 <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
                     {[...Array(3)].map((_, i) => (
                         <ProjectCardSkeleton key={i} />
@@ -269,7 +156,7 @@ const Page = () => {
                             </div>
                             <div className="flex gap-3 items-center">
                                 <div 
-                                    onClick={() => handleUpvote(p.id)} 
+                                    onClick={() => upvote.mutate(p.id)} 
                                     className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer"
                                 >
                                     <ArrowBigUp className={p.hasUpvoted ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
@@ -277,7 +164,7 @@ const Page = () => {
                                 </div>     
 
                                 <div 
-                                    onClick={() => handleHeart(p.id)} 
+                                    onClick={() => heart.mutate(p.id)} 
                                     className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer"
                                 >
                                     <Heart className={p.hasHearted ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
@@ -285,7 +172,7 @@ const Page = () => {
                                 </div>
 
                                 <div 
-                                    onClick={() => handleSave(p.id)} 
+                                    onClick={() => save.mutate(p.id)} 
                                     className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer"
                                 >
                                     <Bookmark className={p.hasSaved ? 'fill-[#FF8162] text-[#FF8162]' : ''} />

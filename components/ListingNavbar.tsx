@@ -4,17 +4,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import axios from 'axios'
 import { toast } from 'sonner'
 import { Bookmark, ChevronDown, LogOutIcon, User } from 'lucide-react'
 import { AvatarDemo } from './Avatar'
 import { Button } from './ui/button'
-
-interface User {
-  id: string
-  fullName: string
-  email: string
-}
+import { useMe } from '@/lib/queries/hooks'
+import { useLogout } from '@/lib/queries/mutations'
 
 interface ListingNavbarProps {
   search: string
@@ -23,9 +18,10 @@ interface ListingNavbarProps {
 
 const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
   const [openProfile, setOpenProfile] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-  const [authChecked, setAuthChecked] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
+  const { data: user, isFetched } = useMe()
+  const logout = useLogout()
+  const router = useRouter()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,26 +37,8 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [openProfile])
 
-  const router = useRouter()
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get("/api/me")
-        setUser(res.data.user)
-      } catch {
-        setUser(null)
-      } finally {
-        setAuthChecked(true)
-      }
-    }
-
-    fetchUser()
-  }, [])
-
   const handleLogout = async () => {
-    await axios.get('/api/logout')
-    setUser(null)
+    await logout.mutateAsync()
     router.push('/')
     toast.success('Logged out')
   }
@@ -83,7 +61,7 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {authChecked && user ? (
+          {isFetched && user ? (
             <div className="relative" ref={profileRef}>
               <div
                 onClick={() => setOpenProfile(true)}
@@ -133,7 +111,7 @@ const ListingNavbar = ({ search, onSearchChange }: ListingNavbarProps) => {
                 </div>
               )}
             </div>
-          ) : authChecked ? (
+          ) : isFetched ? (
             <>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/signin" className="font-light bg-white text-black dark:text-white">Log in</Link>

@@ -1,114 +1,18 @@
 'use client'
 
 import { ArrowBigUp, Bookmark, Heart, SquareArrowOutUpRight, Tags } from "lucide-react"
-import { useEffect, useState } from "react"
-import axios from "axios"
 import Image from "next/image"
-import { toast } from "sonner"
 import Back from "./Back"
-import { useProjectStore } from "@/lib/store"
+import { useSaved } from "@/lib/queries/hooks"
+import { useSavedMutations } from "@/lib/queries/mutations"
 import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
-
-interface Project {
-    id: string
-    name: string
-    description: string
-    link: string
-    logoUrl: string
-    tags: string[]
-    upvotes: number
-    hearts: number
-    saves: number
-    hasUpvoted: boolean
-    hasHearted: boolean
-    hasSaved: boolean
-    user: { fullName: string }
-}
+import type { Project } from "@/lib/queries/types"
 
 const SavedPage = () => {
+    const { data, isLoading } = useSaved()
+    const { upvote, heart, unsave } = useSavedMutations()
 
-    const { setProjects: setGlobalProjects, updateProject } = useProjectStore()
-
-    const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        axios.get('/api/saved').then(res => {
-            setProjects(res.data.projects)
-            setGlobalProjects(res.data.projects)
-            setLoading(false)
-        })
-    }, [setGlobalProjects])
-
-    const handleUpvote = async (projectId: string) => {
-        const project = projects.find(p => p.id === projectId)!
-        const optimisticUpdate = {
-            hasUpvoted: !project.hasUpvoted,
-            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1)
-        }
-    
-        setProjects(projects.map(p => 
-            p.id === projectId ? { ...p, ...optimisticUpdate } : p
-        ))
-        updateProject(projectId, optimisticUpdate)
-
-        try {
-            await axios.post(`/api/projects/${projectId}/upvote`)
-        } catch (error) {
-            setProjects(projects.map(p => 
-                p.id === projectId ? project : p
-            ))
-            updateProject(projectId, { hasUpvoted: project.hasUpvoted, upvotes: project.upvotes })
-            console.log(error)
-        }
-    }
-
-    const handleHeart = async (projectId: string) => {
-        const project = projects.find(p => p.id === projectId)!
-        const optimisticUpdate = {
-            hasHearted: !project.hasHearted,
-            hearts: project.hearts + (project.hasHearted ? -1 : 1)
-        }
-    
-        setProjects(projects.map(p => 
-            p.id === projectId ? { ...p, ...optimisticUpdate } : p
-        ))
-        updateProject(projectId, optimisticUpdate)
-
-        try {
-            await axios.post(`/api/projects/${projectId}/heart`)
-        } catch (error) {
-            setProjects(projects.map(p => 
-                p.id === projectId ? project : p
-            ))
-            updateProject(projectId, { hasHearted: project.hasHearted, hearts: project.hearts })
-            console.log(error)
-        }
-    }
-
-    const handleSave = async (projectId: string) => {
-        const project = projects.find(p => p.id === projectId)!
-    
-        setProjects(projects.filter(p => p.id !== projectId))
-    
-        updateProject(projectId, { 
-            hasSaved: false, 
-            saves: project.saves - 1 
-        })
-    
-        toast.success('Project unsaved')
-
-        try {
-            await axios.post(`/api/projects/${projectId}/save`)
-        } catch (error) {
-            setProjects([...projects])
-            updateProject(projectId, { 
-                hasSaved: true, 
-                saves: project.saves 
-            })
-            console.log(error)
-        }
-    }
+    const projects = data?.projects ?? []
 
     return (
         <>
@@ -116,13 +20,13 @@ const SavedPage = () => {
      
         <div className="py-15">
             <h2 className="text-3xl font-medium tracking-tight text-center sm:text-left sm:mx-14 pb-3 text-[#FF8162]">Saved Projects</h2>
-            {loading ? (
+            {isLoading ? (
                 <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
                     {[...Array(3)].map((_, i) => (
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
-            ) :projects.length > 0 ? (
+            ) : projects.length > 0 ? (
                 <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
                     {projects.map((p: Project) => (
                         <div 
@@ -162,15 +66,15 @@ const SavedPage = () => {
                                 </div>
                             </div>
                             <div className="flex gap-3 items-center">
-                                <div onClick={() => handleUpvote(p.id)} className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'>
+                                <div onClick={() => upvote.mutate(p.id)} className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'>
                                     <ArrowBigUp className={p.hasUpvoted ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
                                 </div>     
                     
-                                <div onClick={() => handleHeart(p.id)} className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'>
+                                <div onClick={() => heart.mutate(p.id)} className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'>
                                     <Heart className={p.hasHearted ? 'fill-[#FF8162] text-[#FF8162]' : ''} />
                                 </div>
 
-                                <div onClick={() => handleSave(p.id)} className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'>
+                                <div onClick={() => unsave.mutate(p.id)} className='flex items-center justify-center w-12 h-12 rounded-xl border border-gray-400 dark:border-gray-50/30 hover:border-[#FF8162] dark:hover:border-[#FF8162] cursor-pointer'>
                                     <Bookmark className='fill-[#FF8162] text-[#FF8162]' />  
                                 </div>
                             </div>

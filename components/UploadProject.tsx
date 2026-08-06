@@ -6,11 +6,12 @@ import { Plus, X } from 'lucide-react'
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { toast } from 'sonner'
-import axios from 'axios'
 import { Spinner } from '@/components/ui/spinner'
+import { useMe } from '@/lib/queries/hooks'
+import { useUploadProject } from '@/lib/queries/mutations'
 
 
-function UploadProject({ onSuccess }: { onSuccess?: () => void }) {
+function UploadProject() {
     const [open, setOpen] = useState(false)
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const tags = ['SaaS', 'Productivity', 'AI', 'Fintech', 'E-commerce', 'Others']
@@ -19,7 +20,8 @@ function UploadProject({ onSuccess }: { onSuccess?: () => void }) {
     const [description, setDescription] = useState('')
     const [link, setLink] = useState('')
     const [logo, setLogo] = useState('')
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const { data: user } = useMe()
+    const uploadProject = useUploadProject()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -29,34 +31,33 @@ function UploadProject({ onSuccess }: { onSuccess?: () => void }) {
             return
         }
 
-        setIsSubmitting(true)
+        if (!user) {
+            toast.error('Please log in to upload a project')
+            return
+        }
+
         try {
-            const res = await axios.get('/api/me')
-            const userId = res.data.user.id
-            await axios.post('/api/uploadproject', {
+            await uploadProject.mutateAsync({
                 name,
                 description,
                 link,
                 logoUrl: logo,
                 tags: selectedTags,
-                userId
+                userId: user.id,
             })
     
-        toast.success('Project uploaded successfully!')
-        setOpen(false)
-        setName('')
-        setDescription('')
-        setLink('')
-        setLogo('')
-        setSelectedTags([])
-        onSuccess?.()
-    } catch (error) {
-        console.log(error)
-        toast.error('Failed to upload project')
-    } finally {
-        setIsSubmitting(false)
+            toast.success('Project uploaded successfully!')
+            setOpen(false)
+            setName('')
+            setDescription('')
+            setLink('')
+            setLogo('')
+            setSelectedTags([])
+        } catch (error) {
+            console.log(error)
+            toast.error('Failed to upload project')
+        }
     }
-}
 
     return (
         <>
@@ -165,9 +166,9 @@ function UploadProject({ onSuccess }: { onSuccess?: () => void }) {
             
                             <Button 
                                 type='submit' 
-                                disabled={isSubmitting}
+                                disabled={uploadProject.isPending}
                             >
-                                {isSubmitting ? <Spinner className="w-4 h-4" /> : 'Submit'}
+                                {uploadProject.isPending ? <Spinner className="w-4 h-4" /> : 'Submit'}
                             </Button>
                         </form>
                     </div>
