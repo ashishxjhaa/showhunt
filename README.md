@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/BackIt.svg" alt="BackIt" width="72" />
+<img src="public/BackIt.png" alt="BackIt" width="72" />
 
 # BackIt
 
@@ -32,6 +32,16 @@ A product launch platform where developers and founders list projects, get disco
     <td><img src="docs/screenshots/listings.png" alt="BackIt listings feed" width="100%" /></td>
     <td><img src="docs/screenshots/signin.png" alt="BackIt sign in page" width="100%" /></td>
   </tr>
+  <tr>
+    <td align="center"><strong>Profile</strong></td>
+    <td align="center"><strong>Saved</strong></td>
+    <td align="center"><strong>Upload project</strong></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/profile.png" alt="BackIt user profile" width="100%" /></td>
+    <td><img src="docs/screenshots/saved.png" alt="BackIt saved projects" width="100%" /></td>
+    <td><img src="docs/screenshots/upload.png" alt="BackIt upload project modal" width="100%" /></td>
+  </tr>
 </table>
 
 ## Features
@@ -43,11 +53,11 @@ A product launch platform where developers and founders list projects, get disco
 - **User profiles** — dashboard with engagement stats and your listed projects
 - **Saved projects** — bookmark projects and revisit them later
 - **Authentication** — JWT in httpOnly cookies with bcrypt-hashed passwords
-- **Dark mode** — system-aware theme with manual toggle
+- **Paper-style UI** — Geist typography, coral accent palette, and grid-frame layout across landing, auth, and dashboard
 
 ## Tech Stack
 
-Built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Prisma 7, PostgreSQL (Neon), TanStack Query, shadcn/ui, Zod, and Motion.
+Built with Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Geist, Prisma 7, PostgreSQL (Neon), TanStack Query, shadcn/ui, Zod, and Motion.
 
 <div align="center">
 
@@ -99,6 +109,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string (Neon recommended) |
 | `JWT_SECRET` | Yes | Secret for signing and verifying JWT tokens |
+| `SCREENSHOT_EMAIL` | No | Test account email for `bun run screenshots` |
+| `SCREENSHOT_PASSWORD` | No | Test account password for `bun run screenshots` |
+| `SCREENSHOT_BASE_URL` | No | Dev server URL for screenshots (default: `http://localhost:3000`) |
 
 ## Scripts
 
@@ -108,6 +121,17 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `bun run build` | Generate Prisma client and create a production build |
 | `bun run start` | Start the production server |
 | `bun run lint` | Run ESLint |
+| `bun run screenshots` | Capture README preview screenshots (dev server must be running) |
+
+### Updating screenshots
+
+```bash
+# Add SCREENSHOT_EMAIL and SCREENSHOT_PASSWORD to .env, then:
+bun run dev
+bun run screenshots
+```
+
+If your dev server runs on a different port, set `SCREENSHOT_BASE_URL` (e.g. `http://localhost:3001`).
 
 ## Project Structure
 
@@ -117,11 +141,17 @@ BackIt/
 │   ├── (Authentication)/   # Sign in and sign up
 │   ├── (Dashboard)/        # Listings, profile, and saved pages
 │   └── api/                # REST API endpoints
-├── components/             # React components (UI, pages, forms)
+├── components/             # React components
+│   ├── landing/            # Landing page sections
+│   ├── AppShell.tsx        # Dashboard layout + grid rails
+│   ├── AppNavbar.tsx       # Unified dashboard nav
+│   ├── AuthShell.tsx       # Auth page layout
 │   └── ui/                 # shadcn/ui primitives
+├── docs/screenshots/       # README preview images
 ├── lib/                    # Auth, Prisma, ranking, React Query hooks
 ├── prisma/                 # Schema and migrations
 ├── public/                 # Static assets (logo, images)
+├── scripts/                # Utility scripts (screenshot capture)
 └── middleware.ts           # JWT auth middleware
 ```
 
@@ -160,5 +190,4 @@ BackIt is deployed on [Vercel](https://vercel.com/). To deploy your own instance
 **Ashish** — [GitHub](https://github.com/ashishxjhaa)
 
 ---
-
 
