@@ -2,14 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { Noto_Sans_JP } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import { Toaster } from "sonner";
-
-const notoSansJP = Noto_Sans_JP({
-  subsets: ["latin"],
-  variable: "--font-noto-sans-jp",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-});
 
 export const metadata: Metadata = {
   title: "BackIt - A launch platform for your products | BackIt",
@@ -26,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={notoSansJP.className}>
+      <body className={GeistSans.className}>
         <QueryProvider>
           <ThemeProvider
             attribute="class"

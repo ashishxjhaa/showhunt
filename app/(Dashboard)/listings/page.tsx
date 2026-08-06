@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import ListingNavbar from "@/components/ListingNavbar"
+import AppShell from "@/components/AppShell"
 import ListingsPage from "@/components/ListingsPage"
 import { useMe } from "@/lib/queries/hooks"
 
@@ -10,10 +10,9 @@ const Listings = () => {
   const { data: user, isFetched } = useMe()
 
   return (
-    <div className="bg-[#F6F6EF] dark:bg-neutral-800 min-h-screen w-full overflow-x-hidden">
-      <ListingNavbar search={search} onSearchChange={setSearch} />
+    <AppShell search={search} onSearchChange={setSearch} showSearch>
       <ListingsPage searchQuery={search} isAuthenticated={isFetched && !!user} />
-    </div>
+    </AppShell>
   )
 }
 

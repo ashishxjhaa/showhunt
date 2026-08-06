@@ -1,83 +1,100 @@
 'use client'
 
-import Image from "next/image";
-import Link from "next/link";
 import { Input } from "./ui/input";
 import Component from "./comp-51";
-import { Button } from "./ui/button";
 import axios from "axios";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner"
+import AuthShell from "./AuthShell";
+import AuthCard, { AuthCardLink } from "./AuthCard";
+import { authFieldClass } from "@/lib/auth-field";
 
 
 export default function SignUp() {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: ""
+  });
 
-    const [formData, setFormData] = useState({
-        fullName: "",
-        email: "",
-        password: ""
-    });
-    
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-    const router = useRouter();
-    
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-    
-        if (!formData.fullName || !formData.email || !formData.password) {
-          toast.error("All fields are required")
-          return;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!formData.fullName || !formData.email || !formData.password) {
+      toast.error("All fields are required")
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      toast.error("Password must 8 characters long")
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post("/api/signup", formData, { withCredentials: true });
+      toast.success("Signup successful 🎉");
+      if (response.status === 200) {
+        router.push("/signin");
+      }
+    } catch (err) {
+      toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthShell>
+      <AuthCard
+        title="Create your account"
+        subtitle={
+          <>
+            Already have an account?
+            <AuthCardLink href="/signin">Log in</AuthCardLink>
+          </>
         }
-    
-        if (formData.password.length < 8) {
-          toast.error("Password must 8 characters long")
-          return;
-        }
+      >
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[#0F0F0F]">Full name</label>
+            <Input
+              type="text"
+              value={formData.fullName}
+              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              placeholder="Ashish Jha"
+              className={authFieldClass}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[#0F0F0F]">Email</label>
+            <Input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="you@example.com"
+              className={authFieldClass}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[#0F0F0F]">Password</label>
+            <Component value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          </div>
 
-        setLoading(true);
-        try {
-            const response = await axios.post("/api/signup", formData, { withCredentials: true, });
-            toast.success("Signup successful 🎉");
-            if (response.status === 200) {
-                router.push("/signin");
-            }
-        } catch (err) {
-            toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Signup failed");
-        } finally {
-            setLoading(false);
-        }
-    };
-      
-    
-    return (
-        <div className="bg-[#F6F6EF] dark:bg-neutral-800 min-h-screen w-full overflow-x-hidden">
-
-            <div className="flex items-center justify-center">
-                <div className="flex flex-col items-center justify-center px-8 sm:px-0 w-full max-w-md pt-10 sm:pt-12 gap-5 mb-10">
-                    <Image src="/home.png" alt="BackIt" width={56} height={56} />
-
-                    <div className="border border-neutral-300 dark:border-neutral-500 rounded-lg text-black dark:text-white w-full">
-                        <div className="bg-neutral-300/25 dark:bg-neutral-700 pl-7 py-6 border-b border-neutral-300 dark:border-neutral-500 rounded-lg">
-                            <h1 className="text-2xl font-serif tracking-wide opacity-85 dark:opacity-95">Create account</h1>
-                            <p className="text-sm font-light opacity-70 dark:opacity-85 tracking-wide">
-                                Already have an account?
-                                <Link href='/signin' className="pl-1 underline font-medium opacity-90 dark:opacity-95">Login.</Link>
-                            </p>
-                        </div>
-
-                        <form className="p-7 space-y-4" onSubmit={handleSubmit}>
-                            <div className="flex flex-col gap-1.5">Full name <Input type='text' value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} placeholder="Ashish Jha" /></div>
-                            <div className="flex flex-col gap-1.5">Email <Input type='email' value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@email.com" /></div>
-                            <div className="flex flex-col gap-1.5">Password <Component value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} /></div>
-                            
-                            <Button type='submit' disabled={loading} className="w-full">{loading ? <Spinner className="w-4 h-4" /> : 'SIGN UP'}</Button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
+          <button
+            type="submit"
+            disabled={loading}
+            className="paper-btn-primary flex h-10 w-full items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 disabled:opacity-60"
+          >
+            {loading ? <Spinner className="h-4 w-4" /> : "Create account"}
+          </button>
+        </form>
+      </AuthCard>
+    </AuthShell>
+  )
 }

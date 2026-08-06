@@ -133,3 +133,271 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Paper-style landing tokens */
+:root {
+  --paper-bg: #f4f1ec;
+  --paper-surface: #fefdfb;
+  --paper-ink: #0f0f0f;
+  --paper-muted: #6b6560;
+  --paper-accent: #ff8162;
+  --paper-accent-hot: #f12711;
+  --paper-accent-soft: #fff0eb;
+  --paper-border: rgba(15, 15, 15, 0.1);
+  --app-max-width: 72rem;
+  --app-rail-color: rgba(15, 15, 15, 0.1);
+  --landing-max-width: var(--app-max-width);
+  --landing-rail-color: var(--app-rail-color);
+}
+
+.paper-page ::selection,
+.landing-page ::selection {
+  background: #ff8162;
+  color: #fefdfb;
+}
+
+.paper-page,
+.landing-page {
+  background-color: var(--paper-bg);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 129, 98, 0.05) 0%,
+    transparent 40%,
+    transparent 100%
+  );
+  color: var(--paper-ink);
+  position: relative;
+  min-height: 100vh;
+}
+
+.paper-page::before,
+.landing-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.paper-page::after,
+.landing-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  background-image: radial-gradient(circle, rgba(15, 15, 15, 0.09) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.paper-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.paper-sheet {
+  background: var(--paper-surface);
+  border: 1px solid var(--paper-border);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.paper-sheet:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 129, 98, 0.25);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 12px 32px -8px rgba(0, 0, 0, 0.12);
+}
+
+.paper-sheet-static {
+  background: var(--paper-surface);
+  border: 1px solid var(--paper-border);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -8px rgba(0, 0, 0, 0.08);
+}
+
+.paper-nav-link {
+  position: relative;
+  color: var(--paper-muted);
+  transition: color 0.2s ease;
+}
+
+.paper-nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--paper-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.paper-nav-link:hover {
+  color: var(--paper-ink);
+}
+
+.paper-nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.paper-btn-primary {
+  background: linear-gradient(135deg, var(--paper-accent) 0%, var(--paper-accent-hot) 100%);
+  color: #fefdfb;
+  border-radius: 0.625rem;
+  font-weight: 500;
+  transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px -2px rgba(255, 129, 98, 0.5);
+}
+
+.paper-btn-primary:hover {
+  filter: brightness(1.06);
+}
+
+.paper-btn-primary:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px -1px rgba(255, 129, 98, 0.4);
+}
+
+.paper-btn-outline {
+  background: var(--paper-surface);
+  color: var(--paper-ink);
+  border: 1px solid var(--paper-border);
+  border-radius: 0.625rem;
+  font-weight: 500;
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.paper-btn-outline:hover {
+  background: var(--paper-accent-soft);
+  border-color: rgba(255, 129, 98, 0.35);
+}
+
+.paper-btn-outline:active {
+  transform: scale(0.97);
+}
+
+/* Auth pages — unified card */
+.auth-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(15, 15, 15, 0.12);
+  background: #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset,
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    0 16px 40px -12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.auth-card-header {
+  width: 100%;
+  border-bottom: 1px solid rgba(15, 15, 15, 0.08);
+  background: #fff5f1;
+  padding: 1.5rem 1.75rem;
+}
+
+.auth-card-body {
+  width: 100%;
+  background: #ffffff;
+  padding: 1.5rem 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .auth-card-header,
+  .auth-card-body {
+    padding: 1.75rem;
+  }
+}
+
+/* Grid frame rails */
+.paper-frame-rail-left,
+.paper-frame-rail-right,
+.landing-frame-rail-left,
+.landing-frame-rail-right {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--app-rail-color);
+  pointer-events: none;
+  z-index: 40;
+}
+
+.paper-frame-rail-left,
+.landing-frame-rail-left {
+  left: max(0px, calc(50% - var(--app-max-width) / 2));
+}
+
+.paper-frame-rail-right,
+.landing-frame-rail-right {
+  right: max(0px, calc(50% - var(--app-max-width) / 2));
+}
+
+@media (max-width: 640px) {
+  .paper-frame-rail-left,
+  .paper-frame-rail-right,
+  .landing-frame-rail-left,
+  .landing-frame-rail-right {
+    display: none;
+  }
+}
+
+.app-section,
+.landing-section {
+  border-bottom: 1px solid var(--app-rail-color);
+}
+
+.paper-input {
+  width: 100%;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d9d4ce;
+  background: #ffffff;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--paper-ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.paper-input::placeholder {
+  color: rgba(107, 101, 96, 0.6);
+}
+
+.paper-input:focus {
+  border-color: var(--paper-accent);
+  box-shadow: 0 0 0 3px rgba(255, 129, 98, 0.2);
+}
+
+.paper-sheet-list {
+  background: var(--paper-surface);
+  border: 1px solid var(--paper-border);
+  border-radius: 1rem;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.paper-nav-link-active {
+  color: var(--paper-ink);
+}
+
+.paper-nav-link-active::after {
+  transform: scaleX(1);
+}

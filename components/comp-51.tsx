@@ -5,6 +5,8 @@ import { useId, useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authFieldClass } from "@/lib/auth-field";
+import { cn } from "@/lib/utils";
 
 export default function Component({
   value,
@@ -61,7 +63,7 @@ export default function Component({
         <div className="relative">
           <Input
             aria-describedby={`${id}-description`}
-            className="pe-9"
+            className={cn(authFieldClass, "pe-9")}
             id={id}
             onChange={onChange}
             placeholder="Password"
@@ -72,7 +74,7 @@ export default function Component({
             aria-controls="password"
             aria-label={isVisible ? "Hide password" : "Show password"}
             aria-pressed={isVisible}
-            className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md text-black/60 dark:text-white/60 outline-none focus:z-10 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md text-[var(--paper-muted)] outline-none focus:z-10 focus-visible:ring-2 focus-visible:ring-[#FF8162]/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
             onClick={toggleVisibility}
             type="button"
           >
@@ -103,7 +105,7 @@ export default function Component({
 
       {/* Password strength description */}
       <p
-        className="mb-2 text-black dark:text-white opacity-60 text-sm"
+        className="mb-2 text-sm text-[var(--paper-muted)]"
         id={`${id}-description`}
       >
         {getStrengthText(strengthScore)}. Must contain:

@@ -39,15 +39,15 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     }
 
     return (
-        <div className="py-15 mt-10">
+        <div className="px-5 py-8 sm:px-8 sm:py-10">
             {isLoading ? (
-                <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
+                <div className="paper-sheet-list">
                     {[...Array(5)].map((_, i) => (
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
             ) : filteredProjects.length > 0 ? (
-                <div className="bg-gray-300 dark:bg-neutral-700 rounded-md px-3 py-3.5 grid gap-3 mx-4 sm:mx-12">
+                <div className="paper-sheet-list">
                     {filteredProjects.map((p, index) => (
                         <ProjectListingCard
                             key={p.id}
@@ -62,11 +62,11 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                     ))}
                 </div>
             ) : projects.length > 0 ? (
-                <p className="text-center text-black dark:text-white opacity-85">
+                <p className="text-center text-[var(--paper-muted)]">
                     No projects match your search.
                 </p>
             ) : (
-                <p className="text-center text-black dark:text-white opacity-85">No projects yet</p>
+                <p className="text-center text-[var(--paper-muted)]">No projects yet</p>
             )}
         </div>
     )
