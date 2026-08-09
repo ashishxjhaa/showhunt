@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Bookmark, ChevronDown, LogOutIcon, Menu, User, X } from "lucide-react"
+import { ChevronDown, LogOutIcon, Menu, X } from "lucide-react"
 import { useMe } from "@/lib/queries/hooks"
 import { useLogout } from "@/lib/queries/mutations"
 import { cn } from "@/lib/utils"
@@ -113,7 +113,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
               </button>
 
               {openProfile && (
-                <div className="absolute top-full right-0 mt-2 w-64 z-50 overflow-hidden rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] shadow-lg">
+                <div className="absolute top-full right-0 mt-2 w-56 z-50 overflow-hidden rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] shadow-lg">
                   <div className="border-b border-[var(--paper-border)] bg-[#fff5f1] p-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#FF8162]">
@@ -129,29 +129,6 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                   </div>
 
                   <div className="p-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        router.push("/profile")
-                        setOpenProfile(false)
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--paper-ink)] transition-colors hover:bg-[var(--paper-accent-soft)]"
-                    >
-                      <User size={16} />
-                      Profile
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        router.push("/saved")
-                        setOpenProfile(false)
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--paper-ink)] transition-colors hover:bg-[var(--paper-accent-soft)]"
-                    >
-                      <Bookmark size={16} />
-                      Saved
-                    </button>
-                    <div className="my-1 border-t border-[var(--paper-border)]" />
                     <button
                       type="button"
                       onClick={handleLogout}
