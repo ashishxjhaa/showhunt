@@ -36,7 +36,7 @@ export default function EngagementSignals() {
           Three signals. Three meanings.
         </h2>
         <p className="mx-auto mt-3 max-w-lg text-[var(--paper-muted)]">
-          Not vanity metrics — real feedback from real builders. Tap to try each one.
+          Not vanity metrics, real feedback from real builders. Tap to try each one.
         </p>
       </div>
 

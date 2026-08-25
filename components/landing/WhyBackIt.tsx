@@ -6,7 +6,7 @@ const reasons = [
     icon: Rocket,
     title: "Free to list, always",
     description:
-      "No pay-to-play launch slots. List your project today and keep it live — Product Hunt charges attention, we charge nothing.",
+      "No pay-to-play launch slots. List your project today and keep it live. Product Hunt charges attention, we charge nothing.",
   },
   {
     icon: Zap,
@@ -18,7 +18,7 @@ const reasons = [
     icon: Heart,
     title: "Built for indie hackers",
     description:
-      "Side projects, weekend builds, early MVPs — BackIt is where builders discover what other builders are shipping.",
+      "Side projects, weekend builds, early MVPs. BackIt is where builders discover what other builders are shipping.",
   },
 ]
 

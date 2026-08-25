@@ -46,14 +46,14 @@ A product launch platform where developers and founders list projects, get disco
 
 ## Features
 
-- **Project listings** — browse a trending feed and search by name, description, tags, or maker
-- **Upload projects** — list with a name, description, live link, logo, and up to 3 tags
-- **Engagement** — upvote, heart, and save projects with optimistic UI updates
-- **Trending ranking** — projects ranked by `upvotes × 3 + hearts × 2 + saves`
-- **User profiles** — dashboard with engagement stats and your listed projects
-- **Saved projects** — bookmark projects and revisit them later
-- **Authentication** — JWT in httpOnly cookies with bcrypt-hashed passwords
-- **Paper-style UI** — Geist typography, coral accent palette, and grid-frame layout across landing, auth, and dashboard
+- **Project listings:** browse a trending feed and search by name, description, tags, or maker
+- **Upload projects:** list with a name, description, live link, logo, and up to 3 tags
+- **Engagement:** upvote, heart, and save projects with optimistic UI updates
+- **Trending ranking:** projects ranked by `upvotes × 3 + hearts × 2 + saves`
+- **User profiles:** dashboard with engagement stats and your listed projects
+- **Saved projects:** bookmark projects and revisit them later
+- **Authentication:** JWT in httpOnly cookies with bcrypt-hashed passwords
+- **Paper-style UI:** Geist typography, coral accent palette, and grid-frame layout across landing, auth, and dashboard
 
 ## Tech Stack
 
@@ -101,7 +101,7 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-> **Note:** `npm`, `yarn`, and `pnpm` also work — replace `bun` / `bunx` with your package manager of choice.
+> **Note:** `npm`, `yarn`, and `pnpm` also work. Replace `bun` / `bunx` with your package manager of choice.
 
 ## Environment Variables
 
@@ -187,7 +187,7 @@ BackIt is deployed on [Vercel](https://vercel.com/). To deploy your own instance
 
 ## Author
 
-**Ashish** — [GitHub](https://github.com/ashishxjhaa)
+**Ashish** ([GitHub](https://github.com/ashishxjhaa))
 
 ---
 

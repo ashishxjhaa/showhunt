@@ -70,7 +70,7 @@ export default function LandingFooter() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--paper-border)] pt-8 sm:flex-row">
           <p className="flex items-center gap-1.5 text-xs text-[var(--paper-muted)]">
             <MdCopyright className="h-3.5 w-3.5" />
-            <span>{new Date().getFullYear()} BackIt — All rights reserved.</span>
+            <span>{new Date().getFullYear()} BackIt. All rights reserved.</span>
           </p>
 
           <Link

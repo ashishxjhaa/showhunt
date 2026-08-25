@@ -293,7 +293,7 @@ body {
   transform: scale(0.97);
 }
 
-/* Auth pages — unified card */
+/* Auth pages: unified card */
 .auth-card {
   border-radius: 1rem;
   border: 1px solid rgba(15, 15, 15, 0.12);

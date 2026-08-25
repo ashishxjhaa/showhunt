@@ -15,7 +15,7 @@ export default function HeroSection() {
             Launch where builders actually show up.
           </h1>
           <p className="mt-5 max-w-md text-base leading-relaxed text-[var(--paper-muted)] sm:text-lg">
-            List your side project, get real upvotes and saves from developers — not just a badge on your README.
+            List your side project, get real upvotes and saves from developers, not just a badge on your README.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

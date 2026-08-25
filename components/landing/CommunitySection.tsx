@@ -15,12 +15,12 @@ const items = [
   {
     icon: Bookmark,
     title: "Projects saved for later",
-    description: "Builders bookmark what interests them — a signal of lasting intent.",
+    description: "Builders bookmark what interests them, a signal of lasting intent.",
   },
   {
     icon: Heart,
     title: "Signals that matter",
-    description: "Upvotes, hearts, and saves — real feedback, not vanity metrics.",
+    description: "Upvotes, hearts, and saves. Real feedback, not vanity metrics.",
   },
 ]
 

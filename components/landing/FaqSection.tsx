@@ -17,7 +17,7 @@ const faqs = [
     value: "item-2",
     question: "Who can list projects on BackIt?",
     answer:
-      "Any developer or founder with a product, side project, or open-source tool to share — whether solo or as a team.",
+      "Any developer or founder with a product, side project, or open-source tool to share, whether solo or as a team.",
   },
   {
     value: "item-3",
@@ -28,13 +28,13 @@ const faqs = [
     value: "item-4",
     question: "How do upvotes, hearts, and saves work?",
     answer:
-      "Upvotes signal interest and push your project up the feed. Hearts show genuine admiration. Saves mean someone will come back — the strongest intent signal.",
+      "Upvotes signal interest and push your project up the feed. Hearts show genuine admiration. Saves mean someone will come back, the strongest intent signal.",
   },
   {
     value: "item-5",
     question: "How do I get more visibility?",
     answer:
-      "Share your listing link on Twitter, Reddit, or Hacker News. Use relevant tags. Engage with other projects — the community rewards active builders.",
+      "Share your listing link on Twitter, Reddit, or Hacker News. Use relevant tags. Engage with other projects. The community rewards active builders.",
   },
   {
     value: "item-6",
