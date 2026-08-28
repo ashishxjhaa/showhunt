@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "BackIt - A launch platform for your products | BackIt",
   description: "BackIt is a product launch platform where developers and founders list projects, get discovered, and receive community engagement through upvotes, hearts, and saves.",
   icons: {
-    icon: "/BackIt.svg"
+    icon: "/showcase.svg"
   },
 };
 

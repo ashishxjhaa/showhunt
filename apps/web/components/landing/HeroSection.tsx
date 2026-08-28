@@ -47,7 +47,7 @@ export default function HeroSection() {
             <InteractiveListingCard
               name="ShipFast"
               description="The launch toolkit indie hackers use to announce, track, and grow their side projects."
-              logoUrl="/BackIt.png"
+              logoUrl="/showcase.png"
               tags={["SaaS", "DevTools"]}
               initialUpvotes={142}
               initialHearts={89}

@@ -65,7 +65,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
           href="/"
           className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40"
         >
-          <Image src="/BackIt.png" alt="BackIt" width={30} height={30} className="rounded-md" />
+          <Image src="/showcase.png" alt="BackIt" width={30} height={30} className="rounded-md" />
           <span className="text-base font-semibold tracking-tight text-[var(--paper-ink)]">BackIt</span>
         </Link>
 

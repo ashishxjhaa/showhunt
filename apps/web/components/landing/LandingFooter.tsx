@@ -24,7 +24,7 @@ export default function LandingFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2.5">
-              <Image src="/BackIt.png" alt="BackIt" width={28} height={28} className="rounded-md" />
+              <Image src="/showcase.png" alt="BackIt" width={28} height={28} className="rounded-md" />
               <span className="text-base font-semibold text-[var(--paper-ink)]">BackIt</span>
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--paper-muted)]">
