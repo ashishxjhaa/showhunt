@@ -21,7 +21,7 @@ export default function AuthCard({ title, subtitle, children }: AuthCardProps) {
 
 export function AuthCardLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="ml-1 font-medium text-[#7C3AED] transition-colors hover:text-[#5B21B6]">
+    <Link href={href} className="ml-1 font-medium text-[#F953C6] transition-colors hover:text-[#B91D73]">
       {children}
     </Link>
   )

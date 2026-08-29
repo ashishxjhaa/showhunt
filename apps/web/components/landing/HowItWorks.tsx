@@ -18,7 +18,7 @@ const steps = [
     icon: RadioTower,
     step: "03",
     title: "Get discovered",
-    description: "Share your listing, collect upvotes and saves, and watch your project climb the feed.",
+    description: "Share your listing, collect upvotes, and climb the trending feed as builders find you.",
   },
 ]
 
@@ -41,9 +41,9 @@ export default function HowItWorks() {
           const Icon = step.icon
           return (
             <div key={step.title} className="relative flex flex-col items-center text-center">
-              <div className="group relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] transition-all duration-200 hover:border-[#7C3AED] hover:border-solid">
-                <Icon className="h-6 w-6 text-[#7C3AED] transition-transform duration-200 group-hover:scale-105" />
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] text-[9px] font-bold text-white select-none">
+              <div className="group relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] transition-all duration-200 hover:border-[#F953C6] hover:border-solid">
+                <Icon className="h-6 w-6 text-[#F953C6] transition-transform duration-200 group-hover:scale-105" />
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#F953C6] to-[#B91D73] text-[9px] font-bold text-white select-none">
                   {step.step}
                 </span>
               </div>

@@ -26,21 +26,21 @@ const faqs = [
   },
   {
     value: "item-4",
-    question: "How do upvotes and discussion work?",
+    question: "How do upvotes work?",
     answer:
-      "Upvotes signal interest and push your project up the feed. Hearts show genuine admiration. Saves mean someone will come back, the strongest intent signal.",
+      "Upvotes signal interest and push your project up the trending feed. Any signed-in builder can upvote a listing once, and can undo it anytime.",
   },
   {
     value: "item-5",
     question: "How do I get more visibility?",
     answer:
-      "Share your listing link on Twitter, Reddit, or Hacker News. Use relevant tags. Engage with other projects. The community rewards active builders.",
+      "Share your listing link on X, Reddit, or Hacker News. Pick tags that match your project. Engage with other launches. The community rewards active builders.",
   },
   {
     value: "item-6",
-    question: "Can I save projects I'm interested in?",
+    question: "How do tags work?",
     answer:
-      "Yes. Click the save icon on any project card. View all saved projects from the Saved page in your dashboard.",
+      "When you list a project you pick up to three tags from a curated set of fifteen. Visitors can filter the whole feed by tag to find projects like yours.",
   },
 ]
 

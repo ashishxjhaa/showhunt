@@ -4,11 +4,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
-import GoogleSignInButton from "@/components/GoogleSignInButton"
 
 const navLinks = [
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How it works" },
+  { href: "/#feed", label: "Live feed" },
   { href: "/#faq", label: "FAQ" },
 ]
 
@@ -16,11 +16,11 @@ export default function StickyPaperNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[100] border-b border-black/8 bg-[#F5F4FA]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[#F5F4FA]/80">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 border-x border-[var(--landing-rail-color)] px-5 py-3 sm:px-8 sm:py-3.5">
+    <header className="fixed inset-x-0 top-0 z-[100] border-b border-black/8 bg-white/85 backdrop-blur-md supports-[backdrop-filter]:bg-white/70">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:px-8 sm:py-3.5">
         <Link
           href="/"
-          className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
+          className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
         >
           <Image src="/showcase.png" alt="ShowHunt" width={30} height={30} className="rounded-md" />
           <span className="text-base font-semibold tracking-tight text-[var(--paper-ink)]">ShowHunt</span>
@@ -35,16 +35,15 @@ export default function StickyPaperNavbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <GoogleSignInButton variant="navbar" />
           <Link
             href="/signin"
-            className="paper-btn-outline inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
+            className="paper-btn-outline inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
           >
             Log in
           </Link>
           <Link
             href="/signup"
-            className="paper-btn-primary inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
+            className="paper-btn-primary inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
           >
             List your project
           </Link>
@@ -52,7 +51,7 @@ export default function StickyPaperNavbar() {
 
         <button
           type="button"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--paper-border)] bg-[var(--paper-surface)] text-[var(--paper-ink)] shadow-sm md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--paper-border)] bg-[var(--paper-surface)] text-[var(--paper-ink)] shadow-sm md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
           onClick={() => setMobileOpen((o) => !o)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
@@ -66,8 +65,8 @@ export default function StickyPaperNavbar() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-black/8 bg-[#F5F4FA]/95 backdrop-blur-md md:hidden">
-          <div className="mx-auto w-full max-w-6xl border-x border-[var(--landing-rail-color)]">
+        <div className="border-t border-black/8 bg-white/95 backdrop-blur-md md:hidden">
+          <div className="mx-auto w-full max-w-6xl">
           <nav className="flex flex-col gap-1 px-5 py-4">
             {navLinks.map((link) => (
               <a
