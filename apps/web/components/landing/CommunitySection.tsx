@@ -33,7 +33,7 @@ export default function CommunitySection() {
             Built with community in mind
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-[var(--paper-muted)]">
-            BackIt is where launches turn into conversations.
+            ShowHunt is where launches turn into conversations.
           </p>
         </div>
 
@@ -43,9 +43,9 @@ export default function CommunitySection() {
             return (
               <div
                 key={item.title}
-                className="rounded-xl border border-[var(--paper-border)] bg-[var(--paper-bg)] p-5 transition-colors hover:border-[#FF8162]/30"
+                className="rounded-xl border border-[var(--paper-border)] bg-[var(--paper-bg)] p-5 transition-colors hover:border-[#7C3AED]/30"
               >
-                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--paper-accent-soft)] text-[#FF8162]">
+                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--paper-accent-soft)] text-[#7C3AED]">
                   <Icon className="h-4 w-4" />
                 </div>
                 <h3 className="text-sm font-semibold text-[var(--paper-ink)]">{item.title}</h3>

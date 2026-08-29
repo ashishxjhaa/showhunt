@@ -38,7 +38,7 @@ export default function InteractiveListingCard({
   return (
     <div className={`paper-sheet p-4 sm:p-5 ${className}`}>
       {rank !== undefined && rank <= 3 && (
-        <div className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#FF8162] to-[#F12711] text-xs font-semibold text-white shadow-sm select-none">
+        <div className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] text-xs font-semibold text-white shadow-sm select-none">
           #{rank}
         </div>
       )}
@@ -55,7 +55,7 @@ export default function InteractiveListingCard({
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-[var(--paper-accent-soft)] px-2 py-0.5 text-xs text-[#F12711] select-none"
+                className="rounded-full bg-[var(--paper-accent-soft)] px-2 py-0.5 text-xs text-[#5B21B6] select-none"
               >
                 {tag}
               </span>
@@ -119,10 +119,10 @@ function EngagementButton({
       whileTap={{ scale: 0.9 }}
       transition={{ type: "spring", stiffness: 500, damping: 22 }}
       onClick={onClick}
-      className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl border cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 ${
+      className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl border cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 ${
         active
-          ? "border-[#FF8162] bg-[var(--paper-accent-soft)] text-[#FF8162]"
-          : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#FF8162]/50 hover:bg-[var(--paper-accent-soft)]"
+          ? "border-[#7C3AED] bg-[var(--paper-accent-soft)] text-[#7C3AED]"
+          : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#7C3AED]/50 hover:bg-[var(--paper-accent-soft)]"
       }`}
       aria-label={label}
     >

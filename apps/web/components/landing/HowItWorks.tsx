@@ -41,9 +41,9 @@ export default function HowItWorks() {
           const Icon = step.icon
           return (
             <div key={step.title} className="relative flex flex-col items-center text-center">
-              <div className="group relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] transition-all duration-200 hover:border-[#FF8162] hover:border-solid">
-                <Icon className="h-6 w-6 text-[#FF8162] transition-transform duration-200 group-hover:scale-105" />
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#FF8162] to-[#F12711] text-[9px] font-bold text-white select-none">
+              <div className="group relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] transition-all duration-200 hover:border-[#7C3AED] hover:border-solid">
+                <Icon className="h-6 w-6 text-[#7C3AED] transition-transform duration-200 group-hover:scale-105" />
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] text-[9px] font-bold text-white select-none">
                   {step.step}
                 </span>
               </div>

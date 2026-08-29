@@ -44,14 +44,14 @@ const Page = () => {
     <div>
         <div className="flex flex-col items-start gap-6 border-b border-[var(--app-rail-color)] p-5 sm:flex-row sm:items-center sm:gap-10 sm:p-8">
             <div className="relative shrink-0">
-                <div className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#FF8162] to-[#FEB57F] opacity-75 blur-sm" />
+                <div className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] opacity-75 blur-sm" />
                 <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[var(--paper-surface)] text-2xl font-medium text-[var(--paper-ink)] ring-2 ring-[var(--paper-border)]">
                     {initials}
                 </div>
             </div>
 
             <div className="flex-1">
-                <h1 className="text-3xl font-semibold tracking-tight text-[#FF8162]">{user?.fullName ?? ''}</h1>
+                <h1 className="text-3xl font-semibold tracking-tight text-[#7C3AED]">{user?.fullName ?? ''}</h1>
                 <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--paper-muted)]">
                     <span className="flex items-center gap-2">
                         <User size={16} />
@@ -78,7 +78,7 @@ const Page = () => {
         </div>
 
         <div className="px-5 py-8 sm:px-8 sm:py-10">
-            <h2 className="pb-4 text-2xl font-semibold tracking-tight text-[#FF8162] sm:text-3xl">My Listings</h2>
+            <h2 className="pb-4 text-2xl font-semibold tracking-tight text-[#7C3AED] sm:text-3xl">My Listings</h2>
             {isLoading ? (
                 <div className="paper-sheet-list">
                     {[...Array(3)].map((_, i) => (
@@ -102,7 +102,7 @@ const Page = () => {
                                     }}
                                     aria-label={`Edit ${l.name}`}
                                     title="Edit listing"
-                                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors hover:border-[#FF8162]/50 hover:bg-[var(--paper-accent-soft)] hover:text-[#FF8162] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40"
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors hover:border-[#7C3AED]/50 hover:bg-[var(--paper-accent-soft)] hover:text-[#7C3AED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
                                 >
                                     <Pencil className="h-4 w-4" />
                                 </button>

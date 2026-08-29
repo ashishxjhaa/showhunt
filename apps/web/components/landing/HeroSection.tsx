@@ -8,7 +8,7 @@ export default function HeroSection() {
     <LandingSection className="pt-28 sm:pt-32">
       <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
-          <p className="mb-4 text-sm font-medium tracking-wide text-[#FF8162] select-none">
+          <p className="mb-4 text-sm font-medium tracking-wide text-[#7C3AED] select-none">
             Product launch platform for builders
           </p>
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-[var(--paper-ink)] sm:text-5xl lg:text-[3.5rem]">
@@ -21,14 +21,14 @@ export default function HeroSection() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
               href="/signup"
-              className="paper-btn-primary inline-flex h-11 items-center justify-center gap-2 px-6 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40"
+              className="paper-btn-primary inline-flex h-11 items-center justify-center gap-2 px-6 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
             >
               List your project
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/listings"
-              className="paper-btn-outline inline-flex h-11 items-center justify-center px-6 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40"
+              className="paper-btn-outline inline-flex h-11 items-center justify-center px-6 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40"
             >
               Browse listings
             </Link>

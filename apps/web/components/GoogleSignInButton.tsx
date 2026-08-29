@@ -69,9 +69,9 @@ export default function GoogleSignInButton({ variant = 'card' }: GoogleSignInBut
       />
       {variant === 'card' && (
         <div className="flex items-center gap-3 py-1">
-          <div className="h-px flex-1 bg-[#D9D4CE]" />
-          <span className="text-xs uppercase tracking-wide text-[#6B6560]">or</span>
-          <div className="h-px flex-1 bg-[#D9D4CE]" />
+          <div className="h-px flex-1 bg-[#DCD8E8]" />
+          <span className="text-xs uppercase tracking-wide text-[#6B6879]">or</span>
+          <div className="h-px flex-1 bg-[#DCD8E8]" />
         </div>
       )}
       <div ref={buttonRef} className={variant === 'navbar' ? '' : 'flex justify-center'} />

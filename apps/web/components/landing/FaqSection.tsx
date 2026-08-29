@@ -9,24 +9,24 @@ import LandingSection from "./LandingSection"
 const faqs = [
   {
     value: "item-1",
-    question: "How is BackIt different from Product Hunt?",
+    question: "How is ShowHunt different from Product Hunt?",
     answer:
-      "BackIt is always-on and free to list. No launch day lottery, no pay-to-play. Your project stays live and accumulates engagement over time through upvotes, hearts, and saves.",
+      "ShowHunt is always-on and free to list. No launch day lottery, no pay-to-play. Your project stays live and accumulates engagement over time through upvotes and discussion.",
   },
   {
     value: "item-2",
-    question: "Who can list projects on BackIt?",
+    question: "Who can list projects on ShowHunt?",
     answer:
       "Any developer or founder with a product, side project, or open-source tool to share, whether solo or as a team.",
   },
   {
     value: "item-3",
-    question: "Is BackIt free to use?",
+    question: "Is ShowHunt free to use?",
     answer: "Yes. Listing your project and engaging with the community is completely free. No credit card required.",
   },
   {
     value: "item-4",
-    question: "How do upvotes, hearts, and saves work?",
+    question: "How do upvotes and discussion work?",
     answer:
       "Upvotes signal interest and push your project up the feed. Hearts show genuine admiration. Saves mean someone will come back, the strongest intent signal.",
   },

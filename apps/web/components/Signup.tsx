@@ -89,7 +89,7 @@ export default function SignUp() {
           <button
             type="submit"
             disabled={loading}
-            className="paper-btn-primary flex h-10 w-full items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 disabled:opacity-60"
+            className="paper-btn-primary flex h-10 w-full items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 disabled:opacity-60"
           >
             {loading ? <Spinner className="h-4 w-4" /> : "Create account"}
           </button>

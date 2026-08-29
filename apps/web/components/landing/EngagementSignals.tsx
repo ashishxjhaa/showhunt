@@ -51,20 +51,20 @@ export default function EngagementSignals() {
               whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", stiffness: 500, damping: 22 }}
               onClick={() => setActive(isActive ? null : signal.label)}
-              className={`paper-sheet p-6 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 ${
-                isActive ? "border-[#FF8162]/50 bg-[var(--paper-accent-soft)]" : ""
+              className={`paper-sheet p-6 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 ${
+                isActive ? "border-[#7C3AED]/50 bg-[var(--paper-accent-soft)]" : ""
               }`}
             >
               <div
                 className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl border transition-colors ${
                   isActive
-                    ? "border-[#FF8162] bg-[#FF8162] text-white"
-                    : "border-[var(--paper-border)] bg-[var(--paper-surface)] text-[#FF8162]"
+                    ? "border-[#7C3AED] bg-[#7C3AED] text-white"
+                    : "border-[var(--paper-border)] bg-[var(--paper-surface)] text-[#7C3AED]"
                 }`}
               >
                 <Icon className={`h-5 w-5 ${isActive ? "fill-current" : ""}`} />
               </div>
-              <p className="text-xs font-medium uppercase tracking-wider text-[#FF8162] select-none">{signal.verb}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-[#7C3AED] select-none">{signal.verb}</p>
               <h3 className="mt-1 text-base font-semibold text-[var(--paper-ink)]">{signal.label}</h3>
               <p className="mt-2 text-sm leading-relaxed text-[var(--paper-muted)]">{signal.description}</p>
             </motion.button>

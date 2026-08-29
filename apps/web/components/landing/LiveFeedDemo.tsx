@@ -51,8 +51,8 @@ export default function LiveFeedDemo() {
       <div className="paper-sheet mx-auto max-w-lg overflow-hidden p-1">
         <div className="flex items-center gap-2 border-b border-[var(--paper-border)] px-4 py-3">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF8162] opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#FF8162]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7C3AED] opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7C3AED]" />
           </span>
           <span className="text-xs font-medium text-[var(--paper-muted)] select-none">Live listings feed</span>
         </div>
@@ -65,7 +65,7 @@ export default function LiveFeedDemo() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.4, delay: item.delay, ease: [0.25, 0.1, 0.25, 1] }}
-              className="flex items-center gap-3 rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] p-3 transition-colors hover:border-[#FF8162]/30"
+              className="flex items-center gap-3 rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] p-3 transition-colors hover:border-[#7C3AED]/30"
             >
               <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[var(--paper-border)]">
                 <Image src={item.logo} alt={item.name} width={36} height={36} className="h-full w-full object-cover" />
@@ -73,7 +73,7 @@ export default function LiveFeedDemo() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-[var(--paper-ink)]">{item.name}</span>
-                  <span className="rounded-full bg-[var(--paper-accent-soft)] px-1.5 py-0.5 text-[10px] text-[#F12711] select-none">
+                  <span className="rounded-full bg-[var(--paper-accent-soft)] px-1.5 py-0.5 text-[10px] text-[#5B21B6] select-none">
                     {item.tag}
                   </span>
                 </div>

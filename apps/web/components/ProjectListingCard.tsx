@@ -73,9 +73,9 @@ export default function ProjectListingCard({
         "#"
 
     return (
-        <div className="relative paper-sheet-static p-4 sm:p-5 transition-colors hover:border-[#FF8162]/25">
+        <div className="relative paper-sheet-static p-4 sm:p-5 transition-colors hover:border-[#7C3AED]/25">
             {rank !== undefined && rank <= 3 && (
-                <div className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#FF8162] to-[#F12711] text-xs font-semibold text-white shadow-sm">
+                <div className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] text-xs font-semibold text-white shadow-sm">
                     #{rank}
                 </div>
             )}
@@ -101,7 +101,7 @@ export default function ProjectListingCard({
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="group/link inline-flex items-center gap-1 font-semibold text-[var(--paper-ink)] transition-colors hover:text-[#FF8162]"
+                            className="group/link inline-flex items-center gap-1 font-semibold text-[var(--paper-ink)] transition-colors hover:text-[#7C3AED]"
                         >
                             {listing.name}
                             <SquareArrowOutUpRight className="h-4 w-4 opacity-0 transition-opacity group-hover/link:opacity-100" />
@@ -114,7 +114,7 @@ export default function ProjectListingCard({
                             {listing.tags.map((tag) => (
                                 <span
                                     key={tag}
-                                    className="rounded-full bg-[var(--paper-accent-soft)] px-2 py-0.5 text-xs text-[#F12711]"
+                                    className="rounded-full bg-[var(--paper-accent-soft)] px-2 py-0.5 text-xs text-[#5B21B6]"
                                 >
                                     {tag}
                                 </span>
@@ -134,10 +134,10 @@ export default function ProjectListingCard({
                         aria-label={expanded ? "Collapse preview" : "Expand preview"}
                         aria-expanded={expanded}
                         className={cn(
-                            'flex h-10 w-10 items-center justify-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 sm:hidden',
+                            'flex h-10 w-10 items-center justify-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 sm:hidden',
                             expanded
-                                ? 'border-[#FF8162] bg-[var(--paper-accent-soft)] text-[#FF8162]'
-                                : 'border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#FF8162]/50'
+                                ? 'border-[#7C3AED] bg-[var(--paper-accent-soft)] text-[#7C3AED]'
+                                : 'border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#7C3AED]/50'
                         )}
                     >
                         <ChevronDown className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')} />
@@ -151,10 +151,10 @@ export default function ProjectListingCard({
                             guardAction(() => onUpvote(listing.id))
                         }}
                         aria-label="Upvote"
-                        className={`flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl border cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 ${
+                        className={`flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl border cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 ${
                             listing.hasUpvoted
-                                ? "border-[#FF8162] bg-[var(--paper-accent-soft)] text-[#FF8162]"
-                                : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#FF8162]/50 hover:bg-[var(--paper-accent-soft)]"
+                                ? "border-[#7C3AED] bg-[var(--paper-accent-soft)] text-[#7C3AED]"
+                                : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#7C3AED]/50 hover:bg-[var(--paper-accent-soft)]"
                         }`}
                     >
                         <ArrowBigUp className={`h-4 w-4 ${listing.hasUpvoted ? "fill-current" : ""}`} />
@@ -219,7 +219,7 @@ export default function ProjectListingCard({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="group/link inline-flex items-center gap-1.5 rounded-full border border-[var(--paper-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--paper-muted)] transition-colors hover:border-[#FF8162]/50 hover:text-[#FF8162]"
+                                    className="group/link inline-flex items-center gap-1.5 rounded-full border border-[var(--paper-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--paper-muted)] transition-colors hover:border-[#7C3AED]/50 hover:text-[#7C3AED]"
                                 >
                                     <Icon className="h-3.5 w-3.5" />
                                     {meta.label}

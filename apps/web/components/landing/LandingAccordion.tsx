@@ -33,7 +33,7 @@ function LandingAccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={cn(
-          "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium text-[var(--paper-ink)] transition-all outline-none hover:text-[#FF8162] focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 [&[data-state=open]>svg]:rotate-45 [&[data-state=open]]:text-[#FF8162]",
+          "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium text-[var(--paper-ink)] transition-all outline-none hover:text-[#7C3AED] focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 [&[data-state=open]>svg]:rotate-45 [&[data-state=open]]:text-[#7C3AED]",
           className
         )}
         {...props}

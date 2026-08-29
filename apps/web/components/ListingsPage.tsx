@@ -55,8 +55,8 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                     className={cn(
                         'shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors',
                         !activeTag
-                            ? 'border-[#FF8162] bg-[var(--paper-accent-soft)] font-medium text-[#F12711]'
-                            : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#FF8162]/50'
+                            ? 'border-[#7C3AED] bg-[var(--paper-accent-soft)] font-medium text-[#5B21B6]'
+                            : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#7C3AED]/50'
                     )}
                 >
                     All
@@ -69,8 +69,8 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                         className={cn(
                             'shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors',
                             activeTag === tag
-                                ? 'border-[#FF8162] bg-[var(--paper-accent-soft)] font-medium text-[#F12711]'
-                                : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#FF8162]/50'
+                                ? 'border-[#7C3AED] bg-[var(--paper-accent-soft)] font-medium text-[#5B21B6]'
+                                : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#7C3AED]/50'
                         )}
                     >
                         {tag}

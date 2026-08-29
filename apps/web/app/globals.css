@@ -136,13 +136,13 @@ body {
 
 /* Paper-style landing tokens */
 :root {
-  --paper-bg: #f4f1ec;
-  --paper-surface: #fefdfb;
+  --paper-bg: #f5f4fa;
+  --paper-surface: #ffffff;
   --paper-ink: #0f0f0f;
-  --paper-muted: #6b6560;
-  --paper-accent: #ff8162;
-  --paper-accent-hot: #f12711;
-  --paper-accent-soft: #fff0eb;
+  --paper-muted: #6b6879;
+  --paper-accent: #7c3aed;
+  --paper-accent-hot: #5b21b6;
+  --paper-accent-soft: #f1ebfe;
   --paper-border: rgba(15, 15, 15, 0.1);
   --app-max-width: 72rem;
   --app-rail-color: rgba(15, 15, 15, 0.1);
@@ -152,8 +152,8 @@ body {
 
 .paper-page ::selection,
 .landing-page ::selection {
-  background: #ff8162;
-  color: #fefdfb;
+  background: #7c3aed;
+  color: #ffffff;
 }
 
 .paper-page,
@@ -161,7 +161,7 @@ body {
   background-color: var(--paper-bg);
   background-image: linear-gradient(
     180deg,
-    rgba(255, 129, 98, 0.05) 0%,
+    rgba(124, 58, 237, 0.05) 0%,
     transparent 40%,
     transparent 100%
   );
@@ -215,7 +215,7 @@ body {
 
 .paper-sheet:hover {
   transform: translateY(-3px);
-  border-color: rgba(255, 129, 98, 0.25);
+  border-color: rgba(124, 58, 237, 0.25);
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.05),
     0 12px 32px -8px rgba(0, 0, 0, 0.12);
@@ -259,11 +259,11 @@ body {
 
 .paper-btn-primary {
   background: linear-gradient(135deg, var(--paper-accent) 0%, var(--paper-accent-hot) 100%);
-  color: #fefdfb;
+  color: #ffffff;
   border-radius: 0.625rem;
   font-weight: 500;
   transition: filter 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 2px 8px -2px rgba(255, 129, 98, 0.5);
+  box-shadow: 0 2px 8px -2px rgba(124, 58, 237, 0.5);
 }
 
 .paper-btn-primary:hover {
@@ -272,7 +272,7 @@ body {
 
 .paper-btn-primary:active {
   transform: scale(0.97);
-  box-shadow: 0 1px 4px -1px rgba(255, 129, 98, 0.4);
+  box-shadow: 0 1px 4px -1px rgba(124, 58, 237, 0.4);
 }
 
 .paper-btn-outline {
@@ -286,7 +286,7 @@ body {
 
 .paper-btn-outline:hover {
   background: var(--paper-accent-soft);
-  border-color: rgba(255, 129, 98, 0.35);
+  border-color: rgba(124, 58, 237, 0.35);
 }
 
 .paper-btn-outline:active {
@@ -308,7 +308,7 @@ body {
 .auth-card-header {
   width: 100%;
   border-bottom: 1px solid rgba(15, 15, 15, 0.08);
-  background: #fff5f1;
+  background: #f7f5fe;
   padding: 1.5rem 1.75rem;
 }
 
@@ -367,7 +367,7 @@ body {
   width: 100%;
   height: 2.25rem;
   border-radius: 0.5rem;
-  border: 1px solid #d9d4ce;
+  border: 1px solid #dcd8e8;
   background: #ffffff;
   padding: 0 0.75rem;
   font-size: 0.875rem;
@@ -377,12 +377,12 @@ body {
 }
 
 .paper-input::placeholder {
-  color: rgba(107, 101, 96, 0.6);
+  color: rgba(107, 104, 121, 0.6);
 }
 
 .paper-input:focus {
   border-color: var(--paper-accent);
-  box-shadow: 0 0 0 3px rgba(255, 129, 98, 0.2);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
 .paper-sheet-list {

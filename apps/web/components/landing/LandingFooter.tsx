@@ -24,8 +24,8 @@ export default function LandingFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2.5">
-              <Image src="/showcase.png" alt="BackIt" width={28} height={28} className="rounded-md" />
-              <span className="text-base font-semibold text-[var(--paper-ink)]">BackIt</span>
+              <Image src="/showcase.png" alt="ShowHunt" width={28} height={28} className="rounded-md" />
+              <span className="text-base font-semibold text-[var(--paper-ink)]">ShowHunt</span>
             </Link>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--paper-muted)]">
               A product launch platform where developers and founders list projects, get discovered, and grow through real community engagement.
@@ -39,7 +39,7 @@ export default function LandingFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-[var(--paper-muted)] transition-colors hover:text-[#FF8162]"
+                    className="text-sm text-[var(--paper-muted)] transition-colors hover:text-[#7C3AED]"
                   >
                     {link.label}
                   </Link>
@@ -57,7 +57,7 @@ export default function LandingFooter() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-[var(--paper-muted)] transition-colors hover:text-[#FF8162]"
+                    className="text-sm text-[var(--paper-muted)] transition-colors hover:text-[#7C3AED]"
                   >
                     {link.label}
                   </Link>
@@ -70,11 +70,11 @@ export default function LandingFooter() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--paper-border)] pt-8 sm:flex-row">
           <p className="flex items-center gap-1.5 text-xs text-[var(--paper-muted)]">
             <MdCopyright className="h-3.5 w-3.5" />
-            <span>{new Date().getFullYear()} BackIt. All rights reserved.</span>
+            <span>{new Date().getFullYear()} ShowHunt. All rights reserved.</span>
           </p>
 
           <Link
-            href="https://github.com/ashishxjhaa/BackIt"
+            href="https://github.com/ashishxjhaa/showhunt"
             target="_blank"
             rel="noopener noreferrer"
             className="group relative flex items-center gap-2 transition-opacity hover:opacity-80"
