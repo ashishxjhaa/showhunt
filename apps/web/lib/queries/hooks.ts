@@ -1,13 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { queryKeys } from './keys'
+import { queryKeys, listingsKey, type ListingsFilters } from './keys'
 import type { ListingsResponse, Listing, User } from './types'
 
-export function useListings() {
+export function useListings(filters?: ListingsFilters) {
+    const params = new URLSearchParams()
+    if (filters?.tag) params.set('tag', filters.tag)
+    const q = filters?.q?.trim()
+    if (q) params.set('q', q)
+    const qs = params.toString()
+
     return useQuery({
-        queryKey: queryKeys.listings,
+        queryKey: listingsKey(filters),
         queryFn: async () => {
-            const res = await api.get<ListingsResponse>('/api/v1/listings')
+            const res = await api.get<ListingsResponse>(
+                `/api/v1/listings${qs ? `?${qs}` : ''}`
+            )
             return res.data
         },
     })

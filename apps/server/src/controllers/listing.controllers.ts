@@ -45,11 +45,23 @@ const listingInclude = {
 
 
 export async function getListings(req: Request, res: Response) {
+  const { tag, q } = req.query as { tag?: string; q?: string }
+
+  const where: Prisma.ListingWhereInput = {}
+  if (tag) {
+    where.tags = { has: tag }
+  }
+  const search = typeof q === "string" ? q.trim() : ""
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+    ]
+  }
+
   const listings = await prisma.listing.findMany({
-    include: {
-      ...listingInclude,
-      upvotes: { where: { userId: req.userId }, select: { userId: true } },
-    },
+    where,
+    include: listingInclude,
     orderBy: { createdAt: "desc" },
   })
 

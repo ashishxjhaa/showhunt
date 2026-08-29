@@ -4,7 +4,7 @@ import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
 import type { Listing, ListingsResponse, ListingInput, EnrichedMetadata } from './types'
 
-type ListingListKey = typeof queryKeys.listings | typeof queryKeys.myListings
+type ListingListKey = readonly unknown[]
 
 function useOptimisticUpvote(
     queryKey: ListingListKey,
@@ -59,8 +59,8 @@ function useOptimisticUpvote(
     })
 }
 
-export function useListingsMutations() {
-    const upvote = useOptimisticUpvote(queryKeys.listings)
+export function useListingsMutations(activeKey?: ListingListKey) {
+    const upvote = useOptimisticUpvote(activeKey ?? queryKeys.listings)
     return { upvote }
 }
 

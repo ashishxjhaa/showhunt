@@ -1,10 +1,13 @@
 'use client'
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { useListings } from "@/lib/queries/hooks"
+import { useListings, useTags } from "@/lib/queries/hooks"
 import { useListingsMutations } from "@/lib/queries/mutations"
+import { listingsKey } from "@/lib/queries/keys"
+import { sortByTrending } from "@/lib/ranking"
+import { cn } from "@/lib/utils"
 import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
 import ProjectListingCard from "./ProjectListingCard"
 
@@ -14,24 +17,29 @@ interface ListingsPageProps {
 }
 
 const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
-    const { data, isLoading } = useListings()
-    const { upvote } = useListingsMutations()
     const router = useRouter()
+    const [activeTag, setActiveTag] = useState<string | null>(null)
+    const [debouncedQuery, setDebouncedQuery] = useState(searchQuery)
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    const filters = useMemo(
+        () => ({ tag: activeTag, q: debouncedQuery }),
+        [activeTag, debouncedQuery]
+    )
+    const { data, isLoading } = useListings(filters)
+    const { upvote } = useListingsMutations(listingsKey(filters))
+    const { data: curatedTags } = useTags()
 
     const listings = data?.listings ?? []
-
-    const filteredListings = useMemo(() => {
-        const query = searchQuery.trim().toLowerCase()
-        if (!query) return listings
-
-        return listings.filter((l) => {
-            const inName = l.name.toLowerCase().includes(query)
-            const inDescription = l.description.toLowerCase().includes(query)
-            const inTags = l.tags.some((tag) => tag.toLowerCase().includes(query))
-            const inMaker = l.user.fullName.toLowerCase().includes(query)
-            return inName || inDescription || inTags || inMaker
-        })
-    }, [listings, searchQuery])
+    const isFiltered = !!activeTag || !!debouncedQuery.trim()
+    const visibleListings = useMemo(
+        () => (isFiltered ? listings : sortByTrending(listings)),
+        [listings, isFiltered]
+    )
 
     const handleRequireAuth = () => {
         toast.error("Please log in to upvote listings")
@@ -40,26 +48,56 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
 
     return (
         <div className="px-5 py-8 sm:px-8 sm:py-10">
+            <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+                <button
+                    type="button"
+                    onClick={() => setActiveTag(null)}
+                    className={cn(
+                        'shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors',
+                        !activeTag
+                            ? 'border-[#FF8162] bg-[var(--paper-accent-soft)] font-medium text-[#F12711]'
+                            : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#FF8162]/50'
+                    )}
+                >
+                    All
+                </button>
+                {(curatedTags ?? []).map((tag) => (
+                    <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                        className={cn(
+                            'shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors',
+                            activeTag === tag
+                                ? 'border-[#FF8162] bg-[var(--paper-accent-soft)] font-medium text-[#F12711]'
+                                : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#FF8162]/50'
+                        )}
+                    >
+                        {tag}
+                    </button>
+                ))}
+            </div>
+
             {isLoading ? (
                 <div className="paper-sheet-list">
                     {[...Array(5)].map((_, i) => (
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
-            ) : filteredListings.length > 0 ? (
+            ) : visibleListings.length > 0 ? (
                 <div className="paper-sheet-list">
-                    {filteredListings.map((l, index) => (
+                    {visibleListings.map((l, index) => (
                         <ProjectListingCard
                             key={l.id}
                             listing={l}
-                            rank={searchQuery.trim() ? undefined : index + 1}
+                            rank={isFiltered ? undefined : index + 1}
                             isAuthenticated={isAuthenticated}
                             onUpvote={(id) => upvote.mutate(id)}
                             onRequireAuth={handleRequireAuth}
                         />
                     ))}
                 </div>
-            ) : listings.length > 0 ? (
+            ) : isFiltered ? (
                 <p className="text-center text-[var(--paper-muted)]">
                     No listings match your search.
                 </p>
