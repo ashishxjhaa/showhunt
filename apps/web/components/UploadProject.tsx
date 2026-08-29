@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
 import { useMe } from '@/lib/queries/hooks'
 import { useUploadListing } from '@/lib/queries/mutations'
+import { UPLOAD_LIMITS_MB, uploadFile, validateFileType } from '@/lib/upload'
 import { authFieldClass } from '@/lib/auth-field'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +25,7 @@ function UploadProject() {
     const [link, setLink] = useState('')
     const [logo, setLogo] = useState('')
     const [logoFileName, setLogoFileName] = useState('')
+    const [uploadingLogo, setUploadingLogo] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { data: user } = useMe()
     const uploadListing = useUploadListing()
@@ -50,13 +52,31 @@ function UploadProject() {
         }
     }, [open])
 
-    const handleFileChange = (file: File | undefined) => {
+    const handleFileChange = async (file: File | undefined) => {
         if (!file) return
 
+        if (!validateFileType(file, 'logo')) {
+            toast.error('Logo must be a PNG, JPG, WebP or SVG file')
+            return
+        }
+
+        if (file.size > UPLOAD_LIMITS_MB.logo * 1024 * 1024) {
+            toast.error(`Logo must be under ${UPLOAD_LIMITS_MB.logo}MB`)
+            return
+        }
+
         setLogoFileName(file.name)
-        const reader = new FileReader()
-        reader.onloadend = () => setLogo(reader.result as string)
-        reader.readAsDataURL(file)
+        setUploadingLogo(true)
+        try {
+            const publicUrl = await uploadFile(file, 'logo')
+            setLogo(publicUrl)
+        } catch (error) {
+            console.log(error)
+            setLogoFileName('')
+            toast.error('Failed to upload logo')
+        } finally {
+            setUploadingLogo(false)
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -224,12 +244,15 @@ function UploadProject() {
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <p className="truncate text-sm font-medium text-[var(--paper-ink)]">
-                                                    {logoFileName || 'Selected logo'}
+                                                    {uploadingLogo
+                                                        ? 'Uploading logo...'
+                                                        : logoFileName || 'Selected logo'}
                                                 </p>
                                                 <button
                                                     type="button"
+                                                    disabled={uploadingLogo}
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className="mt-1 text-sm text-[#FF8162] transition-colors hover:text-[#F12711]"
+                                                    className="mt-1 text-sm text-[#FF8162] transition-colors hover:text-[#F12711] disabled:opacity-50"
                                                 >
                                                     Change
                                                 </button>
@@ -285,7 +308,7 @@ function UploadProject() {
 
                             <button
                                 type="submit"
-                                disabled={uploadListing.isPending}
+                                disabled={uploadListing.isPending || uploadingLogo}
                                 className="paper-btn-primary mt-1 flex h-10 w-full shrink-0 items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 disabled:opacity-60"
                             >
                                 {uploadListing.isPending ? <Spinner className="w-4 h-4" /> : 'Submit project'}

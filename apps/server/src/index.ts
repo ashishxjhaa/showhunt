@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser"
 import express, { type Request, type Response } from "express"
 import { authRouter } from "./routes/auth.routes"
 import { listingRouter } from "./routes/listing.routes"
+import { uploadRouter } from "./routes/upload.routes"
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware"
 
 const app = express()
@@ -23,6 +24,7 @@ app.get("/api/v1/health", (_req: Request, res: Response) => {
 
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/listings", listingRouter)
+app.use("/api/v1/uploads", uploadRouter)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

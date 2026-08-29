@@ -22,3 +22,11 @@ export const createListingSchema = z.object({
   logoUrl: z.string().min(1, "Logo is required"),
   tags: z.array(z.string().min(1)).min(1, "Pick at least one tag").max(3, "Pick at most 3 tags"),
 })
+
+export const presignSchema = z.object({
+  fileName: z.string().min(1, "File name is required").max(255),
+  contentType: z.string().min(1, "Content type is required").max(100),
+  kind: z.enum(["logo", "photo", "video"]),
+})
+
+export type PresignBody = z.infer<typeof presignSchema>
