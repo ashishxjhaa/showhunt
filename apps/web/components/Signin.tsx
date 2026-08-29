@@ -2,14 +2,14 @@
 
 import { Input } from "./ui/input";
 import Component from "./comp-23";
-import axios from "axios";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner"
 import AuthShell from "./AuthShell";
 import AuthCard, { AuthCardLink } from "./AuthCard";
+import GoogleSignInButton from "./GoogleSignInButton";
 import { authFieldClass } from "@/lib/auth-field";
-
+import { api } from "@/lib/api";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -29,8 +29,8 @@ export default function SignIn() {
 
     setLoading(true);
     try {
-      await axios.post("/api/signin", formData, { withCredentials: true });
-      toast.success("Welcome to Back It 🎉");
+      await api.post("/api/v1/auth/signin", formData);
+      toast.success("Welcome to Showhunt 🎉");
       window.location.assign("/listings");
     } catch (err) {
       toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Signin failed");
@@ -73,6 +73,7 @@ export default function SignIn() {
             {loading ? <Spinner className="h-4 w-4" /> : "Log in"}
           </button>
         </form>
+        <GoogleSignInButton />
       </AuthCard>
     </AuthShell>
   )

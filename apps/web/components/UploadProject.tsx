@@ -8,7 +8,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
 import { useMe } from '@/lib/queries/hooks'
-import { useUploadProject } from '@/lib/queries/mutations'
+import { useUploadListing } from '@/lib/queries/mutations'
 import { authFieldClass } from '@/lib/auth-field'
 import { cn } from '@/lib/utils'
 
@@ -26,7 +26,7 @@ function UploadProject() {
     const [logoFileName, setLogoFileName] = useState('')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { data: user } = useMe()
-    const uploadProject = useUploadProject()
+    const uploadListing = useUploadListing()
 
     const closeModal = () => setOpen(false)
 
@@ -73,13 +73,12 @@ function UploadProject() {
         }
 
         try {
-            await uploadProject.mutateAsync({
+            await uploadListing.mutateAsync({
                 name,
                 description,
                 link,
                 logoUrl: logo,
                 tags: selectedTags,
-                userId: user.id,
             })
 
             toast.success('Project uploaded successfully!')
@@ -286,10 +285,10 @@ function UploadProject() {
 
                             <button
                                 type="submit"
-                                disabled={uploadProject.isPending}
+                                disabled={uploadListing.isPending}
                                 className="paper-btn-primary mt-1 flex h-10 w-full shrink-0 items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40 disabled:opacity-60"
                             >
-                                {uploadProject.isPending ? <Spinner className="w-4 h-4" /> : 'Submit project'}
+                                {uploadListing.isPending ? <Spinner className="w-4 h-4" /> : 'Submit project'}
                             </button>
                         </form>
                     </div>

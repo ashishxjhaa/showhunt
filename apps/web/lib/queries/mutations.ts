@@ -1,68 +1,58 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
-import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
-import type { Project, SavedResponse } from './types'
+import type { Listing, ListingsResponse } from './types'
 
-type ProjectListKey = typeof queryKeys.listings | typeof queryKeys.saved | typeof queryKeys.profileProjects
+type ListingListKey = typeof queryKeys.listings | typeof queryKeys.myListings
 
-function updateProjectInList(projects: Project[], projectId: string, updates: Partial<Project>) {
-    return projects.map(p => p.id === projectId ? { ...p, ...updates } : p)
-}
-
-function useOptimisticProjectMutation(
-    queryKey: ProjectListKey,
-    getUpdates: (project: Project) => Partial<Project>,
-    endpoint: (projectId: string) => string,
-    options?: {
-        sortAfterUpdate?: boolean
-        onOptimistic?: (projects: Project[], projectId: string, updates: Partial<Project>) => Project[]
-        invalidateKeys?: (typeof queryKeys)[keyof typeof queryKeys][]
-        showSaveToast?: boolean
-    }
+function useOptimisticUpvote(
+    queryKey: ListingListKey,
+    options?: { invalidateKeys?: ListingListKey[] }
 ) {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: async (projectId: string) => {
-            await axios.post(endpoint(projectId))
-            return projectId
+        mutationFn: async (listingId: string) => {
+            const res = await api.post<{ upvoted: boolean }>(
+                `/api/v1/listings/${listingId}/upvote`
+            )
+            return res.data
         },
-        onMutate: async (projectId) => {
+        onMutate: async (listingId) => {
             await queryClient.cancelQueries({ queryKey })
 
-            const previous = queryClient.getQueryData<{ projects: Project[] }>(queryKey)
-            if (!previous) return { previous }
+            const previous = queryClient.getQueryData<ListingsResponse>(queryKey)
+            if (!previous) return { previous: undefined }
 
-            const project = previous.projects.find(p => p.id === projectId)
-            if (!project) return { previous }
+            const listings = previous.listings.map((l) =>
+                l.id === listingId
+                    ? {
+                          ...l,
+                          hasUpvoted: !l.hasUpvoted,
+                          upvotes: l.upvotes + (l.hasUpvoted ? -1 : 1),
+                      }
+                    : l
+            )
 
-            const updates = getUpdates(project)
-            let nextProjects = updateProjectInList(previous.projects, projectId, updates)
-
-            if (options?.onOptimistic) {
-                nextProjects = options.onOptimistic(previous.projects, projectId, updates)
-            } else if (options?.sortAfterUpdate) {
-                nextProjects = sortByTrending(nextProjects)
-            }
-
-            queryClient.setQueryData(queryKey, { ...previous, projects: nextProjects })
-
-            if (options?.showSaveToast) {
-                toast.success(updates.hasSaved ? 'Project saved!' : 'Project unsaved')
+            if (queryKey === queryKeys.listings) {
+                queryClient.setQueryData<ListingsResponse>(queryKey, {
+                    listings: sortByTrending(listings),
+                })
+            } else {
+                queryClient.setQueryData<ListingsResponse>(queryKey, { listings })
             }
 
             return { previous }
         },
-        onError: (_err, _projectId, context) => {
+        onError: (_err, _listingId, context) => {
             if (context?.previous) {
                 queryClient.setQueryData(queryKey, context.previous)
             }
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey })
-            options?.invalidateKeys?.forEach(key => {
+            options?.invalidateKeys?.forEach((key) => {
                 queryClient.invalidateQueries({ queryKey: key })
             })
         },
@@ -70,132 +60,18 @@ function useOptimisticProjectMutation(
 }
 
 export function useListingsMutations() {
-    const upvote = useOptimisticProjectMutation(
-        queryKeys.listings,
-        (project) => ({
-            hasUpvoted: !project.hasUpvoted,
-            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/upvote`,
-        { sortAfterUpdate: true }
-    )
-
-    const heart = useOptimisticProjectMutation(
-        queryKeys.listings,
-        (project) => ({
-            hasHearted: !project.hasHearted,
-            hearts: project.hearts + (project.hasHearted ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/heart`,
-        { sortAfterUpdate: true }
-    )
-
-    const save = useOptimisticProjectMutation(
-        queryKeys.listings,
-        (project) => ({
-            hasSaved: !project.hasSaved,
-            saves: project.saves + (project.hasSaved ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/save`,
-        { sortAfterUpdate: true, invalidateKeys: [queryKeys.saved], showSaveToast: true }
-    )
-
-    return { upvote, heart, save }
-}
-
-export function useSavedMutations() {
-    const queryClient = useQueryClient()
-
-    const upvote = useOptimisticProjectMutation(
-        queryKeys.saved,
-        (project) => ({
-            hasUpvoted: !project.hasUpvoted,
-            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/upvote`,
-        { invalidateKeys: [queryKeys.listings] }
-    )
-
-    const heart = useOptimisticProjectMutation(
-        queryKeys.saved,
-        (project) => ({
-            hasHearted: !project.hasHearted,
-            hearts: project.hearts + (project.hasHearted ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/heart`,
-        { invalidateKeys: [queryKeys.listings] }
-    )
-
-    const unsave = useMutation({
-        mutationFn: async (projectId: string) => {
-            await axios.post(`/api/projects/${projectId}/save`)
-            return projectId
-        },
-        onMutate: async (projectId) => {
-            await queryClient.cancelQueries({ queryKey: queryKeys.saved })
-
-            const previous = queryClient.getQueryData<SavedResponse>(queryKeys.saved)
-            if (!previous) return { previous }
-
-            const project = previous.projects.find(p => p.id === projectId)
-            if (!project) return { previous }
-
-            queryClient.setQueryData<SavedResponse>(queryKeys.saved, {
-                projects: previous.projects.filter(p => p.id !== projectId),
-            })
-
-            toast.success('Project unsaved')
-            return { previous }
-        },
-        onError: (_err, _projectId, context) => {
-            if (context?.previous) {
-                queryClient.setQueryData(queryKeys.saved, context.previous)
-            }
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: queryKeys.saved })
-            queryClient.invalidateQueries({ queryKey: queryKeys.listings })
-        },
-    })
-
-    return { upvote, heart, unsave }
+    const upvote = useOptimisticUpvote(queryKeys.listings)
+    return { upvote }
 }
 
 export function useProfileMutations() {
-    const upvote = useOptimisticProjectMutation(
-        queryKeys.profileProjects,
-        (project) => ({
-            hasUpvoted: !project.hasUpvoted,
-            upvotes: project.upvotes + (project.hasUpvoted ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/upvote`,
-        { invalidateKeys: [queryKeys.listings] }
-    )
-
-    const heart = useOptimisticProjectMutation(
-        queryKeys.profileProjects,
-        (project) => ({
-            hasHearted: !project.hasHearted,
-            hearts: project.hearts + (project.hasHearted ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/heart`,
-        { invalidateKeys: [queryKeys.listings] }
-    )
-
-    const save = useOptimisticProjectMutation(
-        queryKeys.profileProjects,
-        (project) => ({
-            hasSaved: !project.hasSaved,
-            saves: project.saves + (project.hasSaved ? -1 : 1),
-        }),
-        (id) => `/api/projects/${id}/save`,
-        { invalidateKeys: [queryKeys.saved, queryKeys.listings], showSaveToast: true }
-    )
-
-    return { upvote, heart, save }
+    const upvote = useOptimisticUpvote(queryKeys.myListings, {
+        invalidateKeys: [queryKeys.listings],
+    })
+    return { upvote }
 }
 
-export function useUploadProject() {
+export function useUploadListing() {
     const queryClient = useQueryClient()
 
     return useMutation({
@@ -205,12 +81,11 @@ export function useUploadProject() {
             link: string
             logoUrl: string
             tags: string[]
-            userId: string
         }) => {
-            await axios.post('/api/uploadproject', data)
+            await api.post('/api/v1/listings', data)
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: queryKeys.profileProjects })
+            queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
             queryClient.invalidateQueries({ queryKey: queryKeys.listings })
         },
     })
@@ -221,12 +96,11 @@ export function useLogout() {
 
     return useMutation({
         mutationFn: async () => {
-            await axios.get('/api/logout')
+            await api.post('/api/v1/auth/signout')
         },
         onSuccess: () => {
             queryClient.removeQueries({ queryKey: queryKeys.me })
-            queryClient.removeQueries({ queryKey: queryKeys.saved })
-            queryClient.removeQueries({ queryKey: queryKeys.profileProjects })
+            queryClient.removeQueries({ queryKey: queryKeys.myListings })
         },
     })
 }

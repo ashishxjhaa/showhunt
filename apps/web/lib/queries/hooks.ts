@@ -1,33 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
+import { api } from '@/lib/api'
 import { queryKeys } from './keys'
-import type { ListingsResponse, ProfileProjectsResponse, SavedResponse, User } from './types'
+import type { ListingsResponse, Listing, User } from './types'
 
 export function useListings() {
     return useQuery({
         queryKey: queryKeys.listings,
         queryFn: async () => {
-            const res = await axios.get<ListingsResponse>('/api/listings')
+            const res = await api.get<ListingsResponse>('/api/v1/listings')
             return res.data
         },
     })
 }
 
-export function useSaved() {
+export function useMyListings() {
     return useQuery({
-        queryKey: queryKeys.saved,
+        queryKey: queryKeys.myListings,
         queryFn: async () => {
-            const res = await axios.get<SavedResponse>('/api/saved')
-            return res.data
-        },
-    })
-}
-
-export function useProfileProjects() {
-    return useQuery({
-        queryKey: queryKeys.profileProjects,
-        queryFn: async () => {
-            const res = await axios.get<ProfileProjectsResponse>('/api/uploadproject')
+            const res = await api.get<ListingsResponse>('/api/v1/listings/mine')
             return res.data
         },
         refetchInterval: 15000,
@@ -38,7 +28,7 @@ export function useMe() {
     return useQuery({
         queryKey: queryKeys.me,
         queryFn: async () => {
-            const res = await axios.get<{ user: User }>('/api/me')
+            const res = await api.get<{ user: User }>('/api/v1/auth/me')
             return res.data.user
         },
         retry: false,

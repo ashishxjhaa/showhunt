@@ -15,26 +15,26 @@ interface ListingsPageProps {
 
 const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     const { data, isLoading } = useListings()
-    const { upvote, heart, save } = useListingsMutations()
+    const { upvote } = useListingsMutations()
     const router = useRouter()
 
-    const projects = data?.projects ?? []
+    const listings = data?.listings ?? []
 
-    const filteredProjects = useMemo(() => {
+    const filteredListings = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
-        if (!query) return projects
+        if (!query) return listings
 
-        return projects.filter((p) => {
-            const inName = p.name.toLowerCase().includes(query)
-            const inDescription = p.description.toLowerCase().includes(query)
-            const inTags = p.tags.some((tag) => tag.toLowerCase().includes(query))
-            const inMaker = p.user.fullName.toLowerCase().includes(query)
+        return listings.filter((l) => {
+            const inName = l.name.toLowerCase().includes(query)
+            const inDescription = l.description.toLowerCase().includes(query)
+            const inTags = l.tags.some((tag) => tag.toLowerCase().includes(query))
+            const inMaker = l.user.fullName.toLowerCase().includes(query)
             return inName || inDescription || inTags || inMaker
         })
-    }, [projects, searchQuery])
+    }, [listings, searchQuery])
 
     const handleRequireAuth = () => {
-        toast.error("Please log in to engage with projects")
+        toast.error("Please log in to upvote listings")
         router.push("/signin")
     }
 
@@ -46,27 +46,25 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
-            ) : filteredProjects.length > 0 ? (
+            ) : filteredListings.length > 0 ? (
                 <div className="paper-sheet-list">
-                    {filteredProjects.map((p, index) => (
+                    {filteredListings.map((l, index) => (
                         <ProjectListingCard
-                            key={p.id}
-                            project={p}
+                            key={l.id}
+                            listing={l}
                             rank={searchQuery.trim() ? undefined : index + 1}
                             isAuthenticated={isAuthenticated}
                             onUpvote={(id) => upvote.mutate(id)}
-                            onHeart={(id) => heart.mutate(id)}
-                            onSave={(id) => save.mutate(id)}
                             onRequireAuth={handleRequireAuth}
                         />
                     ))}
                 </div>
-            ) : projects.length > 0 ? (
+            ) : listings.length > 0 ? (
                 <p className="text-center text-[var(--paper-muted)]">
-                    No projects match your search.
+                    No listings match your search.
                 </p>
             ) : (
-                <p className="text-center text-[var(--paper-muted)]">No projects yet</p>
+                <p className="text-center text-[var(--paper-muted)]">No listings yet</p>
             )}
         </div>
     )

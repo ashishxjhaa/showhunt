@@ -7,34 +7,87 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id          String      @id @default(uuid())
-  fullName    String
-  email       String      @unique
-  password    String
-  projects    Project[]
-  upvotedProjects Project[] @relation("UserUpvotes")
-  heartedProjects Project[] @relation("UserHearts")
-  savedProjects   Project[] @relation("UserSaves")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+enum LinkPlatform {
+  WEBSITE
+  GITHUB
+  PLAY_STORE
+  APP_STORE
+  X_TWITTER
+  PRODUCT_HUNT
+  YOUTUBE
+  OTHER
 }
 
-model Project {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  link        String
-  logoUrl     String
-  tags        String[]
-  upvotes     Int      @default(0)
-  hearts      Int      @default(0)
-  saves       Int      @default(0)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  upvotedBy   User[]   @relation("UserUpvotes")
-  heartedBy   User[]   @relation("UserHearts")
-  savedBy     User[]   @relation("UserSaves")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model User {
+  id        String    @id @default(uuid())
+  fullName  String
+  email     String    @unique
+  password  String?
+  googleId  String?   @unique
+  avatarUrl String?
+  listings  Listing[]
+  comments  Comment[]
+  upvotes   Upvote[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Listing {
+  id           String        @id @default(uuid())
+  name         String
+  description  String
+  logoUrl      String
+  videoUrl     String?
+  isOpenSource Boolean       @default(false)
+  repoUrl      String?
+  tags         String[]
+  upvoteCount  Int           @default(0)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links        ListingLink[]
+  photos       Photo[]
+  upvotes      Upvote[]
+  comments     Comment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model ListingLink {
+  id        String       @id @default(uuid())
+  listingId String
+  listing   Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  platform  LinkPlatform
+  url       String
+
+  @@unique([listingId, platform])
+}
+
+model Photo {
+  id        String  @id @default(uuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int     @default(0)
+}
+
+model Upvote {
+  id        String   @id @default(uuid())
+  listingId String
+  userId    String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([listingId, userId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  listingId String
+  userId    String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -1,16 +1,14 @@
-export interface Project {
+export interface Listing {
     id: string
     name: string
     description: string
-    link: string
     logoUrl: string
+    isOpenSource: boolean
+    repoUrl: string | null
     tags: string[]
     upvotes: number
-    hearts: number
-    saves: number
     hasUpvoted: boolean
-    hasHearted: boolean
-    hasSaved: boolean
+    links: { platform: string; url: string }[]
     user: { fullName: string }
     createdAt?: string | Date
 }
@@ -19,23 +17,10 @@ export interface User {
     id: string
     fullName: string
     email: string
+    avatarUrl: string | null
     createdAt: string
 }
 
 export interface ListingsResponse {
-    projects: Project[]
-    stats: {
-        totalProjects: number
-        totalUpvotes: number
-        totalHearts: number
-        totalSaves: number
-    }
-}
-
-export interface SavedResponse {
-    projects: Project[]
-}
-
-export interface ProfileProjectsResponse {
-    projects: Project[]
+    listings: Listing[]
 }

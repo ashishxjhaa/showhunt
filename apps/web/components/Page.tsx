@@ -1,37 +1,33 @@
 'use client'
 
-import { ArrowBigUp, Bookmark, Heart, Layers, User } from "lucide-react"
+import { ArrowBigUp, Layers, User } from "lucide-react"
 import { useMemo } from "react"
 import UploadProject from "./UploadProject"
-import { useMe, useProfileProjects } from "@/lib/queries/hooks"
+import { useMe, useMyListings } from "@/lib/queries/hooks"
 import { useProfileMutations } from "@/lib/queries/mutations"
 import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
 import ProjectListingCard from "./ProjectListingCard"
-import type { Project } from "@/lib/queries/types"
+import type { Listing } from "@/lib/queries/types"
 
-function computeStats(projects: Project[]) {
+function computeStats(listings: Listing[]) {
     return {
-        projects: projects.length,
-        upvotes: projects.reduce((sum, p) => sum + p.upvotes, 0),
-        hearts: projects.reduce((sum, p) => sum + p.hearts, 0),
-        saves: projects.reduce((sum, p) => sum + p.saves, 0),
+        listings: listings.length,
+        upvotes: listings.reduce((sum, l) => sum + l.upvotes, 0),
     }
 }
 
 const statCards = [
-    { key: "projects", label: "Projects", icon: Layers, sub: "Time to build more!" },
+    { key: "listings", label: "Listings", icon: Layers, sub: "Time to build more!" },
     { key: "upvotes", label: "Upvotes", icon: ArrowBigUp, sub: "Dedication level: Good" },
-    { key: "hearts", label: "Hearts", icon: Heart, sub: "Time to learn more!" },
-    { key: "saves", label: "Saved", icon: Bookmark, sub: "Start listing more project" },
 ] as const
 
 const Page = () => {
     const { data: user } = useMe()
-    const { data, isLoading } = useProfileProjects()
-    const { upvote, heart, save } = useProfileMutations()
+    const { data, isLoading } = useMyListings()
+    const { upvote } = useProfileMutations()
 
-    const projects = data?.projects ?? []
-    const stats = useMemo(() => computeStats(projects), [projects])
+    const listings = data?.listings ?? []
+    const stats = useMemo(() => computeStats(listings), [listings])
 
     const initials = user?.fullName.split(' ').map(n => n[0]).join('').toUpperCase() ?? ''
     const formattedDate = user?.createdAt
@@ -64,7 +60,7 @@ const Page = () => {
             <UploadProject />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 border-b border-[var(--app-rail-color)] p-5 sm:grid-cols-2 sm:p-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 border-b border-[var(--app-rail-color)] p-5 sm:grid-cols-2 sm:p-8">
             {statCards.map(({ key, label, icon: Icon, sub }) => (
                 <div key={key} className="paper-sheet-static p-5">
                     <div className="mb-2 flex items-center gap-2 text-[var(--paper-muted)]">
@@ -80,28 +76,26 @@ const Page = () => {
         </div>
 
         <div className="px-5 py-8 sm:px-8 sm:py-10">
-            <h2 className="pb-4 text-2xl font-semibold tracking-tight text-[#FF8162] sm:text-3xl">My Projects</h2>
+            <h2 className="pb-4 text-2xl font-semibold tracking-tight text-[#FF8162] sm:text-3xl">My Listings</h2>
             {isLoading ? (
                 <div className="paper-sheet-list">
                     {[...Array(3)].map((_, i) => (
                         <ProjectCardSkeleton key={i} />
                     ))}
                 </div>
-            ) : projects.length > 0 ? (
+            ) : listings.length > 0 ? (
                 <div className="paper-sheet-list">
-                    {projects.map((p: Project) => (
+                    {listings.map((l) => (
                         <ProjectListingCard
-                            key={p.id}
-                            project={p}
+                            key={l.id}
+                            listing={l}
                             isAuthenticated
                             onUpvote={(id) => upvote.mutate(id)}
-                            onHeart={(id) => heart.mutate(id)}
-                            onSave={(id) => save.mutate(id)}
                         />
                     ))}
                 </div>
             ) : (
-                <p className="text-center text-[var(--paper-muted)]">No projects yet</p>
+                <p className="text-center text-[var(--paper-muted)]">No listings yet</p>
             )}
         </div>
     </div>

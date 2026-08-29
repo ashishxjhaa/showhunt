@@ -2,15 +2,15 @@
 
 import { Input } from "./ui/input";
 import Component from "./comp-51";
-import axios from "axios";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner"
 import AuthShell from "./AuthShell";
 import AuthCard, { AuthCardLink } from "./AuthCard";
+import GoogleSignInButton from "./GoogleSignInButton";
 import { authFieldClass } from "@/lib/auth-field";
-
+import { api } from "@/lib/api";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -37,10 +37,10 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      const response = await axios.post("/api/signup", formData, { withCredentials: true });
+      const response = await api.post("/api/v1/auth/signup", formData);
       toast.success("Signup successful 🎉");
-      if (response.status === 200) {
-        router.push("/signin");
+      if (response.status === 201) {
+        router.push("/listings");
       }
     } catch (err) {
       toast.error((err as { response?: { data?: { error?: string } } })?.response?.data?.error || "Signup failed");
@@ -94,6 +94,7 @@ export default function SignUp() {
             {loading ? <Spinner className="h-4 w-4" /> : "Create account"}
           </button>
         </form>
+        <GoogleSignInButton />
       </AuthCard>
     </AuthShell>
   )

@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
+import GoogleSignInButton from "@/components/GoogleSignInButton"
 
 const navLinks = [
   { href: "/#features", label: "Features" },
@@ -34,6 +35,7 @@ export default function StickyPaperNavbar() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <GoogleSignInButton variant="navbar" />
           <Link
             href="/signin"
             className="paper-btn-outline inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40"
