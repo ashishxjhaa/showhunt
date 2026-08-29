@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { isCuratedTag } from "./tags"
 
 export const signupSchema = z.object({
   fullName: z.string().min(2, "Name is too short").max(80),
@@ -15,12 +16,38 @@ export const googleSchema = z.object({
   credential: z.string().min(10, "Missing Google credential"),
 })
 
+const tagsField = z
+  .array(z.string().min(1))
+  .min(1, "Pick at least one tag")
+  .max(3, "Pick at most 3 tags")
+  .refine((tags) => tags.every(isCuratedTag), "Unknown tag")
+
 export const createListingSchema = z.object({
   name: z.string().min(2, "Name is too short").max(80),
   description: z.string().min(1, "Description is required").max(160),
   link: z.string().url("Invalid link"),
   logoUrl: z.string().min(1, "Logo is required"),
-  tags: z.array(z.string().min(1)).min(1, "Pick at least one tag").max(3, "Pick at most 3 tags"),
+  videoUrl: z.string().url("Invalid video URL").nullish(),
+  photos: z.array(z.string().min(1)).max(5, "Up to 5 photos").optional(),
+  tags: tagsField,
+})
+
+export const updateListingSchema = createListingSchema
+  .extend({
+    link: z.string().url("Invalid link").optional(),
+    logoUrl: z.string().min(1, "Logo is required").optional(),
+    videoUrl: z.string().url("Invalid video URL").nullable().optional(),
+    photos: z.array(z.string().min(1)).max(5, "Up to 5 photos").optional(),
+  })
+  .omit({ name: true, description: true, tags: true })
+  .extend({
+    name: z.string().min(2, "Name is too short").max(80).optional(),
+    description: z.string().min(1, "Description is required").max(160).optional(),
+    tags: tagsField.optional(),
+  })
+
+export const enrichSchema = z.object({
+  url: z.string().url("Invalid URL"),
 })
 
 export const presignSchema = z.object({
@@ -30,3 +57,6 @@ export const presignSchema = z.object({
 })
 
 export type PresignBody = z.infer<typeof presignSchema>
+export type CreateListingBody = z.infer<typeof createListingSchema>
+export type UpdateListingBody = z.infer<typeof updateListingSchema>
+

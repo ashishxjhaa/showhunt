@@ -1,11 +1,19 @@
 import type { Request, Response } from "express"
 import { prisma } from "../lib/prisma"
 import { AppError } from "../lib/errors"
+import { generateMetadata, persistRemoteImage, scrapePage } from "../lib/deepseek"
+import { CURATED_TAGS } from "../lib/tags"
+import type { UpdateListingBody } from "../lib/schema"
 import type { Prisma } from "../generated/prisma/client"
 
 function serializeListing(
   listing: Prisma.ListingGetPayload<{
-    include: { user: { select: { fullName: true } }; upvotes: { select: { userId: true } }; links: true }
+    include: {
+      user: { select: { fullName: true } }
+      upvotes: { select: { userId: true } }
+      links: true
+      photos: true
+    }
   }>
 ) {
   return {
@@ -13,6 +21,10 @@ function serializeListing(
     name: listing.name,
     description: listing.description,
     logoUrl: listing.logoUrl,
+    videoUrl: listing.videoUrl,
+    photos: [...listing.photos]
+      .sort((a, b) => a.position - b.position)
+      .map((p) => p.url),
     isOpenSource: listing.isOpenSource,
     repoUrl: listing.repoUrl,
     tags: listing.tags,
@@ -28,7 +40,9 @@ const listingInclude = {
   user: { select: { fullName: true } },
   upvotes: { select: { userId: true } },
   links: true,
+  photos: { orderBy: { position: "asc" as const } },
 } as const
+
 
 export async function getListings(req: Request, res: Response) {
   const listings = await prisma.listing.findMany({
@@ -52,23 +66,110 @@ export async function getMyListings(req: Request, res: Response) {
   res.json({ listings: listings.map(serializeListing) })
 }
 
+export async function getTags(_req: Request, res: Response) {
+  res.json({ tags: CURATED_TAGS })
+}
+
+export async function enrichListing(req: Request, res: Response) {
+  const { url } = req.body as { url: string }
+
+  const page = await scrapePage(url)
+  const metadata = await generateMetadata(page, url)
+
+  let logoUrl: string | null = null
+  if (page.image) {
+    logoUrl = await persistRemoteImage(page.image, req.userId!)
+  }
+
+  res.json({
+    name: metadata.name,
+    description: metadata.description,
+    tags: metadata.tags,
+    logoUrl,
+  })
+}
+
 export async function createListing(req: Request, res: Response) {
-  const { name, description, link, logoUrl, tags } = req.body
+  const { name, description, link, logoUrl, videoUrl, photos, tags } = req.body
 
   const listing = await prisma.listing.create({
     data: {
       name,
       description,
       logoUrl,
+      videoUrl: videoUrl ?? null,
       tags,
       userId: req.userId!,
       links: { create: { platform: "WEBSITE", url: link } },
+      photos: photos
+        ? { create: photos.map((url: string, position: number) => ({ url, position })) }
+        : undefined,
     },
-    include: { ...listingInclude, upvotes: { select: { userId: true } } },
+    include: listingInclude,
   })
 
   res.status(201).json({ listing: serializeListing(listing) })
 }
+
+export async function updateListing(req: Request, res: Response) {
+  const listingId = req.params.id as string
+  const body = req.body as UpdateListingBody
+
+  const existing = await prisma.listing.findUnique({ where: { id: listingId } })
+  if (!existing) {
+    throw new AppError("Listing not found", 404)
+  }
+  if (existing.userId !== req.userId) {
+    throw new AppError("You can only edit your own listings", 403)
+  }
+
+  const operations: Prisma.PrismaPromise<unknown>[] = []
+
+  const data: Prisma.ListingUpdateInput = {}
+  if (body.name !== undefined) data.name = body.name
+  if (body.description !== undefined) data.description = body.description
+  if (body.logoUrl !== undefined) data.logoUrl = body.logoUrl
+  if (body.videoUrl !== undefined) data.videoUrl = body.videoUrl
+  if (body.tags !== undefined) data.tags = { set: body.tags }
+
+  if (Object.keys(data).length > 0) {
+    operations.push(prisma.listing.update({ where: { id: listingId }, data }))
+  }
+
+  if (body.link !== undefined) {
+    operations.push(
+      prisma.listingLink.upsert({
+        where: { listingId_platform: { listingId, platform: "WEBSITE" } },
+        update: { url: body.link },
+        create: { listingId, platform: "WEBSITE", url: body.link },
+      })
+    )
+  }
+
+  if (body.photos !== undefined) {
+    operations.push(prisma.photo.deleteMany({ where: { listingId } }))
+    if (body.photos.length > 0) {
+      operations.push(
+        prisma.photo.createMany({
+          data: body.photos.map((url, position) => ({ listingId, url, position })),
+        })
+      )
+    }
+  }
+
+  await prisma.$transaction(operations)
+
+  const updated = await prisma.listing.findUnique({
+    where: { id: listingId },
+    include: {
+      ...listingInclude,
+      upvotes: { where: { userId: req.userId }, select: { userId: true } },
+    },
+  })
+
+  res.json({ listing: updated ? serializeListing(updated) : null })
+}
+
 
 export async function toggleUpvote(req: Request, res: Response) {
   const listingId = req.params.id as string

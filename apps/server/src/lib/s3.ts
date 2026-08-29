@@ -20,7 +20,7 @@ export const UPLOAD_LIMITS = {
 
 export type UploadKind = keyof typeof UPLOAD_LIMITS
 
-const IMAGE_TYPES: Record<string, string> = {
+export const IMAGE_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
@@ -63,3 +63,17 @@ export async function deleteObject(key: string): Promise<void> {
   if (!BUCKET) throw new AppError("S3 is not configured", 500)
   await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }))
 }
+
+/** Uploads an in-memory buffer (e.g. a logo scraped from a website) to S3. */
+export async function uploadBuffer(
+  key: string,
+  contentType: string,
+  buffer: Buffer
+): Promise<string> {
+  if (!BUCKET) throw new AppError("S3 is not configured", 500)
+  await s3Client.send(
+    new PutObjectCommand({ Bucket: BUCKET, Key: key, ContentType: contentType, Body: buffer })
+  )
+  return publicUrlFor(key)
+}
+

@@ -13,6 +13,17 @@ export function useListings() {
     })
 }
 
+export function useTags() {
+    return useQuery({
+        queryKey: queryKeys.tags,
+        queryFn: async () => {
+            const res = await api.get<{ tags: string[] }>('/api/v1/listings/tags')
+            return res.data.tags
+        },
+        staleTime: Infinity,
+    })
+}
+
 export function useMyListings() {
     return useQuery({
         queryKey: queryKeys.myListings,

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
-import type { Listing, ListingsResponse } from './types'
+import type { Listing, ListingsResponse, ListingInput, EnrichedMetadata } from './types'
 
 type ListingListKey = typeof queryKeys.listings | typeof queryKeys.myListings
 
@@ -75,18 +75,35 @@ export function useUploadListing() {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: async (data: {
-            name: string
-            description: string
-            link: string
-            logoUrl: string
-            tags: string[]
-        }) => {
+        mutationFn: async (data: ListingInput) => {
             await api.post('/api/v1/listings', data)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
             queryClient.invalidateQueries({ queryKey: queryKeys.listings })
+        },
+    })
+}
+
+export function useUpdateListing() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({ id, data }: { id: string; data: ListingInput }) => {
+            await api.patch(`/api/v1/listings/${id}`, data)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+            queryClient.invalidateQueries({ queryKey: queryKeys.listings })
+        },
+    })
+}
+
+export function useEnrichListing() {
+    return useMutation({
+        mutationFn: async (url: string) => {
+            const res = await api.post<EnrichedMetadata>('/api/v1/listings/enrich', { url })
+            return res.data
         },
     })
 }

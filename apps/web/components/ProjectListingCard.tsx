@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { ArrowBigUp, SquareArrowOutUpRight, Tags } from "lucide-react"
 import { motion } from "motion/react"
+import type { ReactNode } from "react"
 import type { Listing } from "@/lib/queries/types"
 
 interface ProjectListingCardProps {
@@ -12,6 +13,7 @@ interface ProjectListingCardProps {
     onUpvote: (id: string) => void
     onRequireAuth?: () => void
     showCounts?: boolean
+    actionSlot?: ReactNode
 }
 
 export default function ProjectListingCard({
@@ -21,6 +23,7 @@ export default function ProjectListingCard({
     onUpvote,
     onRequireAuth,
     showCounts = true,
+    actionSlot,
 }: ProjectListingCardProps) {
     const guardAction = (action: () => void) => {
         if (!isAuthenticated) {
@@ -82,6 +85,7 @@ export default function ProjectListingCard({
                 </div>
 
                 <div className="flex items-center justify-end gap-2 sm:gap-3">
+                    {actionSlot}
                     <motion.button
                         type="button"
                         whileTap={{ scale: 0.9 }}

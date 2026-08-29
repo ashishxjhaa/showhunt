@@ -1,7 +1,7 @@
 'use client'
 
-import { ArrowBigUp, Layers, User } from "lucide-react"
-import { useMemo } from "react"
+import { ArrowBigUp, Layers, Pencil, User } from "lucide-react"
+import { useMemo, useState } from "react"
 import UploadProject from "./UploadProject"
 import { useMe, useMyListings } from "@/lib/queries/hooks"
 import { useProfileMutations } from "@/lib/queries/mutations"
@@ -25,6 +25,8 @@ const Page = () => {
     const { data: user } = useMe()
     const { data, isLoading } = useMyListings()
     const { upvote } = useProfileMutations()
+    const [editing, setEditing] = useState<Listing | null>(null)
+    const [editOpen, setEditOpen] = useState(false)
 
     const listings = data?.listings ?? []
     const stats = useMemo(() => computeStats(listings), [listings])
@@ -91,6 +93,20 @@ const Page = () => {
                             listing={l}
                             isAuthenticated
                             onUpvote={(id) => upvote.mutate(id)}
+                            actionSlot={
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditing(l)
+                                        setEditOpen(true)
+                                    }}
+                                    aria-label={`Edit ${l.name}`}
+                                    title="Edit listing"
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors hover:border-[#FF8162]/50 hover:bg-[var(--paper-accent-soft)] hover:text-[#FF8162] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8162]/40"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                </button>
+                            }
                         />
                     ))}
                 </div>
@@ -98,6 +114,13 @@ const Page = () => {
                 <p className="text-center text-[var(--paper-muted)]">No listings yet</p>
             )}
         </div>
+
+        <UploadProject
+            listing={editing}
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            trigger={null}
+        />
     </div>
   )
 }
