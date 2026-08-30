@@ -1,44 +1,13 @@
 "use client"
 
 import Image from "next/image"
-import {
-    Apple,
-    ArrowBigUp,
-    ChevronDown,
-    Flame,
-    Github,
-    Globe,
-    Link as LinkIcon,
-    Play,
-    SquareArrowOutUpRight,
-    Tags,
-    Twitter,
-    Youtube,
-} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowBigUp, SquareArrowOutUpRight } from "lucide-react"
 import { motion } from "motion/react"
-import { useState, type ComponentType } from "react"
 import type { Listing } from "@/lib/queries/types"
-import { cn } from "@/lib/utils"
-
-const PLATFORM_META: Record<string, { label: string; icon: ComponentType<{ className?: string }> }> = {
-    WEBSITE: { label: "Website", icon: Globe },
-    GITHUB: { label: "GitHub", icon: Github },
-    PLAY_STORE: { label: "Play Store", icon: Play },
-    APP_STORE: { label: "App Store", icon: Apple },
-    X_TWITTER: { label: "X (Twitter)", icon: Twitter },
-    PRODUCT_HUNT: { label: "Product Hunt", icon: Flame },
-    YOUTUBE: { label: "YouTube", icon: Youtube },
-    OTHER: { label: "Link", icon: LinkIcon },
-}
-
-function youtubeEmbedUrl(url: string): string | null {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)
-    return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : null
-}
 
 interface ProjectListingCardProps {
     listing: Listing
-    rank?: number
     isAuthenticated?: boolean
     onUpvote: (id: string) => void
     onRequireAuth?: () => void
@@ -48,14 +17,13 @@ interface ProjectListingCardProps {
 
 export default function ProjectListingCard({
     listing,
-    rank,
     isAuthenticated = true,
     onUpvote,
     onRequireAuth,
     showCounts = true,
     actionSlot,
 }: ProjectListingCardProps) {
-    const [expanded, setExpanded] = useState(false)
+    const router = useRouter()
 
     const guardAction = (action: () => void) => {
         if (!isAuthenticated) {
@@ -65,27 +33,13 @@ export default function ProjectListingCard({
         action()
     }
 
-    const toggle = () => setExpanded((v) => !v)
-
-    const primaryLink =
-        listing.links.find((l) => l.platform === "WEBSITE")?.url ??
-        listing.links[0]?.url ??
-        "#"
-
     return (
-        <div className="relative paper-sheet-static p-4 sm:p-5 transition-colors hover:border-[#DA5CC7]/25">
-            {rank !== undefined && rank <= 3 && (
-                <div className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#DA5CC7] to-[#C431AE] text-xs font-semibold text-white shadow-sm">
-                    #{rank}
-                </div>
-            )}
-
+        <div
+            className="group/card relative cursor-pointer rounded-2xl bg-[var(--paper-surface)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#F7F7F8] sm:p-5"
+            onClick={() => router.push(`/listings/${listing.id}`)}
+        >
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-                <div
-                    className="flex flex-1 cursor-pointer gap-3 sm:gap-4"
-                    onClick={toggle}
-                    aria-expanded={expanded}
-                >
+                <div className="flex flex-1 gap-3 sm:gap-4">
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--paper-border)]">
                         <Image
                             src={listing.logoUrl}
@@ -96,26 +50,17 @@ export default function ProjectListingCard({
                         />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <a
-                            href={primaryLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="group/link inline-flex items-center gap-1 font-semibold text-[var(--paper-ink)] transition-colors hover:text-[#DA5CC7]"
-                        >
+                        <h3 className="inline-flex items-center gap-1 font-semibold text-[var(--paper-ink)] transition-colors group-hover/card:text-[#DA5CC7]">
                             {listing.name}
-                            <SquareArrowOutUpRight className="h-4 w-4 opacity-0 transition-opacity group-hover/link:opacity-100" />
-                        </a>
+                            <SquareArrowOutUpRight className="h-4 w-4 opacity-0 transition-opacity group-hover/card:opacity-100" />
+                        </h3>
                         <p className="mt-0.5 text-sm leading-relaxed text-[var(--paper-muted)]">
                             {listing.description}
                         </p>
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                            <Tags className="h-3.5 w-3.5 text-[var(--paper-muted)]" />
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--paper-muted)]">
                             {listing.tags.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="rounded-full bg-[var(--paper-accent-soft)] px-2 py-0.5 text-xs text-[#C431AE]"
-                                >
+                                <span key={tag} className="inline-flex items-center gap-1.5">
+                                    <span className="h-1 w-1 rounded-full bg-[var(--paper-muted)]" />
                                     {tag}
                                 </span>
                             ))}
@@ -125,23 +70,6 @@ export default function ProjectListingCard({
 
                 <div className="flex items-center justify-end gap-2 sm:gap-3">
                     {actionSlot}
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            toggle()
-                        }}
-                        aria-label={expanded ? "Collapse preview" : "Expand preview"}
-                        aria-expanded={expanded}
-                        className={cn(
-                            'flex h-10 w-10 items-center justify-center rounded-[8px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40 sm:hidden',
-                            expanded
-                                ? 'border-[#DA5CC7] bg-[var(--paper-accent-soft)] text-[#DA5CC7]'
-                                : 'border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50'
-                        )}
-                    >
-                        <ChevronDown className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')} />
-                    </button>
                     <motion.button
                         type="button"
                         whileTap={{ scale: 0.9 }}
@@ -164,83 +92,6 @@ export default function ProjectListingCard({
                     </motion.button>
                 </div>
             </div>
-
-            {expanded && (
-                <div className="mt-4 space-y-4 border-t border-[var(--paper-border)] pt-4">
-                    {listing.photos.length > 0 && (
-                        <div className="flex gap-3 overflow-x-auto pb-1">
-                            {listing.photos.map((url, index) => (
-                                <a
-                                    key={url}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="shrink-0"
-                                >
-                                    <Image
-                                        src={url}
-                                        alt={`${listing.name} screenshot ${index + 1}`}
-                                        width={280}
-                                        height={160}
-                                        className="h-40 w-auto rounded-xl border border-[var(--paper-border)] object-cover"
-                                    />
-                                </a>
-                            ))}
-                        </div>
-                    )}
-
-                    {listing.videoUrl &&
-                        (youtubeEmbedUrl(listing.videoUrl) ? (
-                            <div className="aspect-video w-full overflow-hidden rounded-xl border border-[var(--paper-border)]">
-                                <iframe
-                                    src={youtubeEmbedUrl(listing.videoUrl)!}
-                                    title={`${listing.name} video`}
-                                    className="h-full w-full"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </div>
-                        ) : (
-                            <video
-                                src={listing.videoUrl}
-                                controls
-                                className="w-full rounded-xl border border-[var(--paper-border)]"
-                            />
-                        ))}
-
-                    <div className="flex flex-wrap items-center gap-2">
-                        {listing.links.map((link) => {
-                            const meta = PLATFORM_META[link.platform] ?? PLATFORM_META.OTHER
-                            const Icon = meta.icon
-                            return (
-                                <a
-                                    key={link.platform + link.url}
-                                    href={link.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="group/link inline-flex items-center gap-1.5 rounded-full border border-[var(--paper-border)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--paper-muted)] transition-colors hover:border-[#DA5CC7]/50 hover:text-[#DA5CC7]"
-                                >
-                                    <Icon className="h-3.5 w-3.5" />
-                                    {meta.label}
-                                    <SquareArrowOutUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover/link:opacity-100" />
-                                </a>
-                            )
-                        })}
-                    </div>
-
-                    {listing.createdAt && (
-                        <p className="text-xs text-[var(--paper-muted)]">
-                            Launched{' '}
-                            {new Date(listing.createdAt).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                            })}
-                        </p>
-                    )}
-                </div>
-            )}
         </div>
     )
 }

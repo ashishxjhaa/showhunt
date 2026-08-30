@@ -1,6 +1,7 @@
 import { Router } from "express"
 import {
   createListing,
+  deleteListing,
   enrichListing,
   getListings,
   getMyListings,
@@ -24,5 +25,6 @@ listingRouter.get("/mine", authMiddleware, getMyListings)
 listingRouter.post("/", authMiddleware, validate(createListingSchema), createListing)
 listingRouter.post("/enrich", authMiddleware, validate(enrichSchema), enrichListing)
 listingRouter.patch("/:id", authMiddleware, validate(updateListingSchema), updateListing)
+listingRouter.delete("/:id", authMiddleware, deleteListing)
 listingRouter.post("/:id/upvote", authMiddleware, toggleUpvote)
 

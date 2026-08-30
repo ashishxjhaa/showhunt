@@ -34,15 +34,10 @@ export async function uploadFile(file: File, kind: UploadKind): Promise<string> 
 
     const { uploadUrl, publicUrl } = res.data
 
-    const putRes = await fetch(uploadUrl, {
-        method: 'PUT',
+    // axios throws on non-2xx responses, so no manual status check is needed
+    await api.put(uploadUrl, file, {
         headers: { 'Content-Type': file.type },
-        body: file,
     })
-
-    if (!putRes.ok) {
-        throw new Error(`S3 upload failed with status ${putRes.status}`)
-    }
 
     return publicUrl
 }

@@ -1,12 +1,17 @@
 'use client'
 
 import { ArrowBigUp, Layers, Pencil, User } from "lucide-react"
-import { useMemo, useState } from "react"
+import Image from "next/image"
+import { useEffect, useState } from "react"
+import { motion, useSpring, useTransform } from "motion/react"
+import { toast } from "sonner"
 import UploadProject from "./UploadProject"
+import AvatarPicker from "./AvatarPicker"
+import { resolveAvatarSrc } from "@/lib/avatars"
 import { useMe, useMyListings } from "@/lib/queries/hooks"
-import { useProfileMutations } from "@/lib/queries/mutations"
-import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
-import ProjectListingCard from "./ProjectListingCard"
+import { useDeleteListing, useUpdateAvatar } from "@/lib/queries/mutations"
+import { MyListingCardSkeleton } from "./ProjectCardSkeleton"
+import MyListingCard from "./MyListingCard"
 import type { Listing } from "@/lib/queries/types"
 
 function computeStats(listings: Listing[]) {
@@ -16,22 +21,88 @@ function computeStats(listings: Listing[]) {
     }
 }
 
+function listingsSub(count: number): string {
+    if (count === 0) return "Ship your first project"
+    if (count <= 2) return "Off to a great start"
+    if (count <= 5) return "Building momentum"
+    if (count <= 9) return "Prolific builder"
+    return "Unstoppable"
+}
+
+function upvotesSub(count: number): string {
+    if (count === 0) return "No votes yet, share your work"
+    if (count < 10) return "Dedication level: Rising"
+    if (count < 25) return "Dedication level: Good"
+    if (count < 50) return "Dedication level: Great"
+    if (count < 100) return "Dedication level: Elite"
+    return "Dedication level: Legendary"
+}
+
 const statCards = [
-    { key: "listings", label: "Listings", icon: Layers, sub: "Time to build more!" },
-    { key: "upvotes", label: "Upvotes", icon: ArrowBigUp, sub: "Dedication level: Good" },
+    { key: "listings", label: "Listings", icon: Layers, color: "#E93545", sub: listingsSub },
+    { key: "upvotes", label: "Upvotes", icon: ArrowBigUp, color: "#3559E9", sub: upvotesSub },
 ] as const
 
+function CountUp({ value }: { value: number }) {
+    // Seed with the mount-time value so cached data skips the count-up
+    const spring = useSpring(value, { stiffness: 90, damping: 22 })
+    const display = useTransform(spring, (v) => Math.round(v).toLocaleString())
+
+    useEffect(() => {
+        spring.set(value)
+    }, [value, spring])
+
+    return <motion.span className="tabular-nums">{display}</motion.span>
+}
+
+function StatCard({ label, icon: Icon, color, sub, value }: {
+    label: string
+    icon: typeof Layers
+    color: string
+    sub: string
+    value: number
+}) {
+    return (
+        <div className="group relative overflow-hidden rounded-2xl border border-[var(--paper-border)] bg-[var(--paper-surface)] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] sm:p-6">
+            <div
+                className="pointer-events-none absolute inset-0"
+                style={{ background: `linear-gradient(135deg, ${color}1A, transparent 55%)` }}
+            />
+            <Icon
+                className="pointer-events-none absolute -bottom-5 -right-5 h-28 w-28 opacity-[0.07] transition-transform duration-300 group-hover:scale-110"
+                style={{ color }}
+            />
+            <div className="relative">
+                <div
+                    className="flex h-9 w-9 items-center justify-center rounded-[10px] shadow-sm"
+                    style={{ backgroundColor: color }}
+                >
+                    <Icon className="h-4 w-4 text-white" />
+                </div>
+                <p className="mt-4 text-5xl font-semibold tracking-tight text-[var(--paper-ink)]">
+                    <CountUp value={value} />
+                </p>
+                <p className="mt-1.5 text-sm font-semibold" style={{ color }}>{label}</p>
+                <p className="mt-1 text-xs text-[var(--paper-muted)]">{sub}</p>
+            </div>
+        </div>
+    )
+}
+
 const Page = () => {
-    const { data: user } = useMe()
+    const { data: user, isFetched } = useMe()
     const { data, isLoading } = useMyListings()
-    const { upvote } = useProfileMutations()
+    const deleteListing = useDeleteListing()
+    const updateAvatar = useUpdateAvatar()
     const [editing, setEditing] = useState<Listing | null>(null)
     const [editOpen, setEditOpen] = useState(false)
+    const [pickerOpen, setPickerOpen] = useState(false)
 
     const listings = data?.listings ?? []
-    const stats = useMemo(() => computeStats(listings), [listings])
+    const stats = computeStats(listings)
 
-    const initials = user?.fullName.split(' ').map(n => n[0]).join('').toUpperCase() ?? ''
+    const avatarSeed = user?.email ?? user?.fullName ?? "showhunt"
+    const avatarSrc = resolveAvatarSrc(user?.avatarUrl, avatarSeed)
     const formattedDate = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -42,12 +113,30 @@ const Page = () => {
 
   return (
     <div>
-        <div className="flex flex-col items-start gap-6 border-b border-[var(--app-rail-color)] p-5 sm:flex-row sm:items-center sm:gap-10 sm:p-8">
+        <div className="flex flex-col items-start gap-6 p-5 sm:flex-row sm:items-center sm:gap-10 sm:p-8">
             <div className="relative shrink-0">
-                <div className="absolute -inset-[5px] rounded-full bg-gradient-to-r from-[#DA5CC7] to-[#FA9CEC] opacity-75 blur-sm" />
-                <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[var(--paper-surface)] text-2xl font-medium text-[var(--paper-ink)] ring-2 ring-[var(--paper-border)]">
-                    {initials}
+                <div className="relative h-24 w-24 overflow-hidden rounded-full bg-[var(--paper-surface)] ring-2 ring-[var(--paper-border)]">
+                    {isFetched ? (
+                        <Image
+                            src={avatarSrc}
+                            alt={user?.fullName ? `${user.fullName} avatar` : "Avatar"}
+                            width={96}
+                            height={96}
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <div className="h-full w-full animate-pulse bg-black/5" aria-hidden="true" />
+                    )}
                 </div>
+                <button
+                    type="button"
+                    onClick={() => setPickerOpen(true)}
+                    aria-label="Change avatar"
+                    title="Change avatar"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--paper-border)] bg-white text-[var(--paper-muted)] shadow-sm transition-colors hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)] hover:text-[#DA5CC7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
+                >
+                    <Pencil size={14} />
+                </button>
             </div>
 
             <div className="flex-1">
@@ -62,50 +151,36 @@ const Page = () => {
             <UploadProject />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 border-b border-[var(--app-rail-color)] p-5 sm:grid-cols-2 sm:p-8">
-            {statCards.map(({ key, label, icon: Icon, sub }) => (
-                <div key={key} className="paper-sheet-static p-5">
-                    <div className="mb-2 flex items-center gap-2 text-[var(--paper-muted)]">
-                        <Icon size={16} />
-                        <span className="text-sm tracking-wide">{label}</span>
-                    </div>
-                    <p className="text-2xl font-semibold text-[var(--paper-ink)]">
-                        {key === "upvotes" ? `${stats.upvotes} vote${stats.upvotes !== 1 ? "s" : ""}` : stats[key]}
-                    </p>
-                    <p className="mt-2 text-xs tracking-wide text-[var(--paper-muted)] opacity-70">{sub}</p>
-                </div>
+        <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-8">
+            {statCards.map(({ key, label, icon, color, sub }) => (
+                <StatCard key={key} label={label} icon={icon} color={color} sub={sub(stats[key])} value={stats[key]} />
             ))}
         </div>
 
         <div className="px-5 py-8 sm:px-8 sm:py-10">
-            <h2 className="pb-4 text-2xl font-semibold tracking-tight text-[#DA5CC7] sm:text-3xl">My Listings</h2>
+            <h2 className="pb-4 text-2xl font-semibold tracking-tight text-[#DA5CC7] sm:text-3xl">Your Listings</h2>
             {isLoading ? (
                 <div className="paper-sheet-list">
                     {[...Array(3)].map((_, i) => (
-                        <ProjectCardSkeleton key={i} />
+                        <MyListingCardSkeleton key={i} />
                     ))}
                 </div>
             ) : listings.length > 0 ? (
                 <div className="paper-sheet-list">
                     {listings.map((l) => (
-                        <ProjectListingCard
+                        <MyListingCard
                             key={l.id}
                             listing={l}
-                            isAuthenticated
-                            onUpvote={(id) => upvote.mutate(id)}
-                            actionSlot={
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setEditing(l)
-                                        setEditOpen(true)
-                                    }}
-                                    aria-label={`Edit ${l.name}`}
-                                    title="Edit listing"
-                                    className="flex h-10 w-10 items-center justify-center rounded-[8px] border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)] hover:text-[#DA5CC7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </button>
+                            deleting={deleteListing.isPending && deleteListing.variables === l.id}
+                            onEdit={(listing) => {
+                                setEditing(listing)
+                                setEditOpen(true)
+                            }}
+                            onDelete={(id) =>
+                                deleteListing.mutate(id, {
+                                    onSuccess: () => toast.success("Listing deleted"),
+                                    onError: () => toast.error("Could not delete listing, please try again"),
+                                })
                             }
                         />
                     ))}
@@ -120,6 +195,19 @@ const Page = () => {
             open={editOpen}
             onOpenChange={setEditOpen}
             trigger={null}
+        />
+
+        <AvatarPicker
+            open={pickerOpen}
+            currentUrl={user?.avatarUrl ?? null}
+            saving={updateAvatar.isPending}
+            onSelect={(url) =>
+                updateAvatar.mutate(url, {
+                    onSuccess: () => setPickerOpen(false),
+                    onError: () => toast.error("Could not save avatar, please try again"),
+                })
+            }
+            onClose={() => setPickerOpen(false)}
         />
     </div>
   )

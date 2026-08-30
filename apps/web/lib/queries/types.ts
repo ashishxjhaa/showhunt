@@ -30,6 +30,9 @@ export interface ListingInput {
     tags: string[]
     videoUrl?: string | null
     photos?: string[]
+    isOpenSource?: boolean
+    repoUrl?: string | null
+    socialLinks?: { platform: string; url: string }[]
 }
 
 export interface User {

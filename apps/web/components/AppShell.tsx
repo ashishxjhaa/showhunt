@@ -20,10 +20,8 @@ export default function AppShell({
         onSearchChange={onSearchChange}
         showSearch={showSearch}
       />
-      <div className="paper-frame-rail-left" aria-hidden="true" />
-      <div className="paper-frame-rail-right" aria-hidden="true" />
       <div className="paper-page light min-h-screen w-full">
-        <main className="mx-auto w-full max-w-6xl border-x border-[var(--app-rail-color)] pt-16 sm:pt-[4.5rem]">
+        <main className="mx-auto w-full max-w-6xl pt-[4.75rem] sm:pt-[5.5rem]">
           {children}
         </main>
       </div>

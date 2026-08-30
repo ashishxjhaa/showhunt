@@ -104,3 +104,15 @@ export async function me(req: Request, res: Response) {
   }
   res.json({ user })
 }
+
+export async function updateAvatar(req: Request, res: Response) {
+  const { avatarUrl } = req.body
+
+  const user = await prisma.user.update({
+    where: { id: req.userId },
+    data: { avatarUrl },
+    select: USER_SELECT,
+  })
+
+  res.json({ user })
+}

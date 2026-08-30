@@ -1,9 +1,10 @@
 import type { Request, Response } from "express"
 import { prisma } from "../lib/prisma"
 import { AppError } from "../lib/errors"
+import { deleteObject } from "../lib/s3"
 import { generateMetadata, persistRemoteImage, scrapePage } from "../lib/deepseek"
 import { CURATED_TAGS } from "../lib/tags"
-import type { UpdateListingBody } from "../lib/schema"
+import type { CreateListingBody, UpdateListingBody } from "../lib/schema"
 import type { Prisma } from "../generated/prisma/client"
 
 function serializeListing(
@@ -102,7 +103,18 @@ export async function enrichListing(req: Request, res: Response) {
 }
 
 export async function createListing(req: Request, res: Response) {
-  const { name, description, link, logoUrl, videoUrl, photos, tags } = req.body
+  const {
+    name,
+    description,
+    link,
+    logoUrl,
+    videoUrl,
+    photos,
+    tags,
+    isOpenSource,
+    repoUrl,
+    socialLinks,
+  } = req.body as CreateListingBody
 
   const listing = await prisma.listing.create({
     data: {
@@ -111,8 +123,15 @@ export async function createListing(req: Request, res: Response) {
       logoUrl,
       videoUrl: videoUrl ?? null,
       tags,
+      isOpenSource: isOpenSource ?? false,
+      repoUrl: repoUrl ?? null,
       userId: req.userId!,
-      links: { create: { platform: "WEBSITE", url: link } },
+      links: {
+        create: [
+          { platform: "WEBSITE" as const, url: link },
+          ...(socialLinks ?? []),
+        ],
+      },
       photos: photos
         ? { create: photos.map((url: string, position: number) => ({ url, position })) }
         : undefined,
@@ -143,6 +162,8 @@ export async function updateListing(req: Request, res: Response) {
   if (body.logoUrl !== undefined) data.logoUrl = body.logoUrl
   if (body.videoUrl !== undefined) data.videoUrl = body.videoUrl
   if (body.tags !== undefined) data.tags = { set: body.tags }
+  if (body.isOpenSource !== undefined) data.isOpenSource = body.isOpenSource
+  if (body.repoUrl !== undefined) data.repoUrl = body.repoUrl
 
   if (Object.keys(data).length > 0) {
     operations.push(prisma.listing.update({ where: { id: listingId }, data }))
@@ -156,6 +177,22 @@ export async function updateListing(req: Request, res: Response) {
         create: { listingId, platform: "WEBSITE", url: body.link },
       })
     )
+  }
+
+  // Replace all non-website links with the submitted set
+  if (body.socialLinks !== undefined) {
+    operations.push(
+      prisma.listingLink.deleteMany({
+        where: { listingId, platform: { not: "WEBSITE" } },
+      })
+    )
+    if (body.socialLinks.length > 0) {
+      operations.push(
+        prisma.listingLink.createMany({
+          data: body.socialLinks.map((l) => ({ listingId, platform: l.platform, url: l.url })),
+        })
+      )
+    }
   }
 
   if (body.photos !== undefined) {
@@ -182,6 +219,36 @@ export async function updateListing(req: Request, res: Response) {
   res.json({ listing: updated ? serializeListing(updated) : null })
 }
 
+
+export async function deleteListing(req: Request, res: Response) {
+  const listingId = req.params.id as string
+
+  const existing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    include: { photos: true },
+  })
+  if (!existing) {
+    throw new AppError("Listing not found", 404)
+  }
+  if (existing.userId !== req.userId) {
+    throw new AppError("You can only delete your own listings", 403)
+  }
+
+  // Relations cascade, so this also removes links, photos, upvotes, comments
+  await prisma.listing.delete({ where: { id: listingId } })
+
+  // Best-effort media cleanup; the DB row is already gone
+  const bucket = process.env.S3_BUCKET_NAME ?? ""
+  const prefix = `https://s3.${process.env.AWS_REGION ?? "ap-south-1"}.amazonaws.com/${bucket}/`
+  const urls = [existing.logoUrl, existing.videoUrl, ...existing.photos.map((p) => p.url)]
+  await Promise.allSettled(
+    urls
+      .filter((u): u is string => typeof u === "string" && u.startsWith(prefix))
+      .map((u) => deleteObject(u.slice(prefix.length)))
+  )
+
+  res.json({ deleted: true })
+}
 
 export async function toggleUpvote(req: Request, res: Response) {
   const listingId = req.params.id as string

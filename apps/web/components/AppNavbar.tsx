@@ -2,18 +2,31 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronDown, LogOutIcon, Menu, X } from "lucide-react"
+import { ArrowUpRight, Compass, LogOutIcon, Menu, User, X } from "lucide-react"
 import { useMe } from "@/lib/queries/hooks"
-import { useLogout } from "@/lib/queries/mutations"
+import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
-  { href: "/listings", label: "Browse" },
-  { href: "/profile", label: "Profile" },
+  { href: "/listings", label: "Browse", icon: Compass },
+  { href: "/profile", label: "Profile", icon: User },
 ]
+
+const authLinks = [
+  { href: "/signin", label: "Log in", className: "paper-btn-outline" },
+  { href: "/signup", label: "Register", className: "paper-btn-primary" },
+]
+
+let clickAudio: HTMLAudioElement | null = null
+
+const playClickSound = () => {
+  clickAudio ??= new Audio("/switchtab.mp3")
+  clickAudio.currentTime = 0
+  clickAudio.play().catch(() => {})
+}
 
 interface AppNavbarProps {
   search?: string
@@ -22,50 +35,27 @@ interface AppNavbarProps {
 }
 
 export default function AppNavbar({ search = "", onSearchChange, showSearch = false }: AppNavbarProps) {
-  const [openProfile, setOpenProfile] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const profileRef = useRef<HTMLDivElement>(null)
   const { data: user, isFetched } = useMe()
-  const logout = useLogout()
-  const router = useRouter()
   const pathname = usePathname()
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setOpenProfile(false)
-      }
-    }
-
-    if (openProfile) {
-      document.addEventListener("mousedown", handleClickOutside)
-    }
-
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [openProfile])
-
-  const handleLogout = async () => {
-    await logout.mutateAsync()
-    router.push("/")
+  const handleLogout = () => {
     toast.success("Logged out")
+    // Fire-and-forget signout, then hard-navigate to reset all client auth state
+    api.post("/api/v1/auth/signout").catch(() => {})
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign("/")
   }
 
-  const initials = user?.fullName
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) ?? ""
-
   return (
-    <header className="fixed inset-x-0 top-0 z-[100] border-b border-black/8 bg-[#FAF7FA]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[#FAF7FA]/80">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 border-x border-[var(--app-rail-color)] px-5 py-3 sm:px-8 sm:py-3.5">
+    <header className="fixed inset-x-0 top-0 z-[100] bg-[#FAF7FA]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[#FAF7FA]/80">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-5 py-4 sm:px-8 sm:py-5">
         <Link
           href="/"
           className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
         >
-          <Image src="/showcase.svg" alt="ShowHunt" width={30} height={30} className="rounded-md" />
-          <span className="text-base font-semibold tracking-tight text-[var(--paper-ink)]">ShowHunt</span>
+          <Image src="/showcase.svg" alt="ShowHunt" width={38} height={38} className="rounded-lg" />
+          <span className="text-xl font-bold tracking-tight text-[var(--paper-ink)]">ShowHunt</span>
         </Link>
 
         <div className="hidden flex-1 max-w-sm mx-4 md:block">
@@ -82,80 +72,66 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
           )}
         </div>
 
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
+              onClick={playClickSound}
               className={cn(
-                "paper-nav-link text-sm font-medium",
-                pathname === link.href && "paper-nav-link-active"
+                "group relative mx-4 flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40",
+                pathname === link.href
+                  ? "opacity-100"
+                  : "opacity-70 hover:opacity-100"
               )}
             >
-              {link.label}
+              <span className="flex items-center gap-2 font-bold text-[var(--paper-ink)] transition-transform duration-500 ease-in-out group-hover:-translate-x-2">
+                <link.icon size={18} strokeWidth={2} />
+                {link.label}
+              </span>
+              <ArrowUpRight
+                size={48}
+                strokeWidth={1}
+                className="absolute -right-8 h-[20px] text-[var(--paper-ink)] opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100"
+              />
             </Link>
           ))}
         </nav>
 
         <div className="hidden items-center gap-2 shrink-0 md:flex">
-          {isFetched && user ? (
-            <div className="relative" ref={profileRef}>
-              <button
-                type="button"
-                onClick={() => setOpenProfile((o) => !o)}
-                className="flex items-center gap-1.5 rounded-[8px] px-2 py-1.5 text-[var(--paper-ink)] transition-colors hover:bg-[var(--paper-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#DA5CC7]">
-                  {initials}
-                </div>
-                <ChevronDown className="h-4 w-4 text-[var(--paper-muted)]" />
-              </button>
-
-              {openProfile && (
-                <div className="absolute top-full right-0 mt-2 w-56 z-50 overflow-hidden rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] shadow-lg">
-                  <div className="border-b border-[var(--paper-border)] bg-[#f7f5fe] p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#DA5CC7]">
-                        {initials}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-[var(--paper-ink)]">
-                          {user.fullName?.split(" ")[0]}
-                        </p>
-                        <p className="truncate text-xs text-[var(--paper-muted)]">{user.email}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-2">
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-2 rounded-[8px] px-3 py-2 text-sm text-red-500 transition-colors hover:bg-red-50"
-                    >
-                      <LogOutIcon size={16} />
-                      Log out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : isFetched ? (
+          {!isFetched ? (
+            <div
+              className="h-10 w-[104px] animate-pulse rounded-[8px] bg-black/5"
+              aria-hidden="true"
+            />
+          ) : user ? (
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound()
+                handleLogout()
+              }}
+              className="inline-flex h-10 items-center gap-2 rounded-[8px] border border-red-200 bg-white px-4 text-sm font-medium text-red-500 transition-colors hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+            >
+              <LogOutIcon size={16} />
+              Sign out
+            </button>
+          ) : (
             <>
-              <Link
-                href="/signin"
-                className="paper-btn-outline inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                className="paper-btn-primary inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-              >
-                Register
-              </Link>
+              {authLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    link.className,
+                    "inline-flex h-10 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </>
-          ) : null}
+          )}
         </div>
 
         <button
@@ -175,7 +151,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
 
       {mobileOpen && (
         <div className="border-t border-black/8 bg-[#FAF7FA]/95 backdrop-blur-md md:hidden">
-          <div className="mx-auto w-full max-w-6xl border-x border-[var(--app-rail-color)]">
+          <div className="mx-auto w-full max-w-6xl">
             {showSearch && (
               <div className="px-5 pt-4">
                 <input
@@ -193,13 +169,17 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-[var(--paper-accent-soft)] hover:text-[var(--paper-ink)]",
+                    "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-bold transition-colors hover:bg-[var(--paper-accent-soft)] hover:text-[var(--paper-ink)]",
                     pathname === link.href
-                      ? "bg-[var(--paper-accent-soft)] text-[var(--paper-ink)] font-medium"
+                      ? "bg-[var(--paper-accent-soft)] text-[var(--paper-ink)]"
                       : "text-[var(--paper-muted)]"
                   )}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    playClickSound()
+                    setMobileOpen(false)
+                  }}
                 >
+                  <link.icon size={16} strokeWidth={2} />
                   {link.label}
                 </Link>
               ))}
@@ -207,29 +187,27 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                 <button
                   type="button"
                   onClick={() => {
+                    playClickSound()
                     handleLogout()
                     setMobileOpen(false)
                   }}
-                  className="mt-3 rounded-[8px] px-3 py-2.5 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
+                  className="mt-3 inline-flex items-center gap-2 rounded-[8px] px-3 py-2.5 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
                 >
-                  Log out
+                  <LogOutIcon size={16} />
+                  Sign out
                 </button>
               ) : isFetched ? (
                 <div className="mt-3 flex flex-col gap-2 border-t border-[var(--paper-border)] pt-4">
-                  <Link
-                    href="/signin"
-                    className="paper-btn-outline inline-flex h-10 items-center justify-center text-sm"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="paper-btn-primary inline-flex h-10 items-center justify-center text-sm"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Register
-                  </Link>
+                  {authLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(link.className, "inline-flex h-10 items-center justify-center text-sm")}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
                 </div>
               ) : null}
             </nav>

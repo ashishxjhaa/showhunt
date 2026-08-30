@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Script from 'next/script'
 import { toast } from 'sonner'
-import { api } from '@/lib/api'
+import { api, apiErrorMessage } from '@/lib/api'
 
 declare global {
   interface Window {
@@ -23,11 +23,7 @@ declare global {
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
-interface GoogleSignInButtonProps {
-  variant?: 'card' | 'navbar'
-}
-
-export default function GoogleSignInButton({ variant = 'card' }: GoogleSignInButtonProps) {
+export default function GoogleSignInButton() {
   const buttonRef = useRef<HTMLDivElement>(null)
   const [googleReady, setGoogleReady] = useState(
     () => typeof window !== 'undefined' && Boolean(window.google?.accounts?.id)
@@ -59,40 +55,25 @@ export default function GoogleSignInButton({ variant = 'card' }: GoogleSignInBut
         try {
           await api.post('/api/v1/auth/google', { credential: response.credential })
           toast.success('Signed in with Google 🎉')
+          // Hard reload so cached logged-out state is fully reset
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.assign('/listings')
         } catch (err) {
-          toast.error(
-            (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-              'Google sign-in failed'
-          )
+          toast.error(apiErrorMessage(err, 'Google sign-in failed'))
         }
       },
     })
 
     buttonRef.current.innerHTML = ''
-    window.google.accounts.id.renderButton(
-      buttonRef.current,
-      variant === 'navbar'
-        ? { theme: 'outline', size: 'medium', text: 'signin_with', shape: 'pill' }
-        : {
-            theme: 'outline',
-            size: 'large',
-            text: 'continue_with',
-            width: Math.min(400, Math.max(buttonRef.current.offsetWidth, 200)),
-          }
-    )
-  }, [googleReady, variant])
+    window.google.accounts.id.renderButton(buttonRef.current, {
+      theme: 'outline',
+      size: 'large',
+      text: 'continue_with',
+      width: Math.min(400, Math.max(buttonRef.current.offsetWidth, 200)),
+    })
+  }, [googleReady])
 
   if (!CLIENT_ID) return null
-
-  if (variant === 'navbar') {
-    return (
-      <>
-        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
-        <div ref={buttonRef} />
-      </>
-    )
-  }
 
   return (
     <>

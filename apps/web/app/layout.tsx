@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/lib/theme-provider";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "sonner";
@@ -19,18 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={GeistSans.className}>
         <QueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster position="bottom-right" />
-          </ThemeProvider>
+          {children}
+          <Toaster position="bottom-right" />
         </QueryProvider>
       </body>
     </html>

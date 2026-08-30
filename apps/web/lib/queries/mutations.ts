@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
-import type { Listing, ListingsResponse, ListingInput, EnrichedMetadata } from './types'
+import type { ListingsResponse, ListingInput, EnrichedMetadata, User } from './types'
 
 type ListingListKey = readonly unknown[]
 
@@ -64,13 +64,6 @@ export function useListingsMutations(activeKey?: ListingListKey) {
     return { upvote }
 }
 
-export function useProfileMutations() {
-    const upvote = useOptimisticUpvote(queryKeys.myListings, {
-        invalidateKeys: [queryKeys.listings],
-    })
-    return { upvote }
-}
-
 export function useUploadListing() {
     const queryClient = useQueryClient()
 
@@ -99,11 +92,54 @@ export function useUpdateListing() {
     })
 }
 
+export function useDeleteListing() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async (listingId: string) => {
+            await api.delete(`/api/v1/listings/${listingId}`)
+        },
+        onMutate: async (listingId) => {
+            await queryClient.cancelQueries({ queryKey: queryKeys.myListings })
+            const previous = queryClient.getQueryData<ListingsResponse>(queryKeys.myListings)
+            if (previous) {
+                queryClient.setQueryData<ListingsResponse>(queryKeys.myListings, {
+                    listings: previous.listings.filter((l) => l.id !== listingId),
+                })
+            }
+            return { previous }
+        },
+        onError: (_err, _listingId, context) => {
+            if (context?.previous) {
+                queryClient.setQueryData(queryKeys.myListings, context.previous)
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+            queryClient.invalidateQueries({ queryKey: queryKeys.listings })
+        },
+    })
+}
+
 export function useEnrichListing() {
     return useMutation({
         mutationFn: async (url: string) => {
             const res = await api.post<EnrichedMetadata>('/api/v1/listings/enrich', { url })
             return res.data
+        },
+    })
+}
+
+export function useUpdateAvatar() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async (avatarUrl: string) => {
+            const res = await api.patch<{ user: User }>('/api/v1/auth/avatar', { avatarUrl })
+            return res.data.user
+        },
+        onSuccess: (user) => {
+            queryClient.setQueryData(queryKeys.me, user)
         },
     })
 }

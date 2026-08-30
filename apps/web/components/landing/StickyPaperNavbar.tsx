@@ -11,6 +11,11 @@ const navLinks = [
   { href: "/#faq", label: "FAQ" },
 ]
 
+const authLinks = [
+  { href: "/signin", label: "Log in", className: "paper-btn-outline px-5" },
+  { href: "/signup", label: "List your project", className: "paper-btn-dark px-6" },
+]
+
 export default function StickyPaperNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -34,18 +39,15 @@ export default function StickyPaperNavbar() {
         </nav>
 
         <div className="hidden items-center gap-4 md:flex">
-          <Link
-            href="/signin"
-            className="paper-btn-outline inline-flex h-10 items-center px-5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="paper-btn-dark inline-flex h-10 items-center px-6 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-          >
-            List your project
-          </Link>
+          {authLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`${link.className} inline-flex h-10 items-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
         <button
@@ -78,16 +80,16 @@ export default function StickyPaperNavbar() {
               </a>
             ))}
             <div className="mt-3 flex flex-col gap-3 border-t border-[var(--paper-border)] pt-4">
-              <Link
-                href="/signin"
-                className="paper-btn-outline inline-flex h-10 items-center justify-center text-sm"
-                onClick={() => setMobileOpen(false)}
-              >
-                Log in
-              </Link>
-              <Link href="/signup" className="paper-btn-dark inline-flex h-10 items-center justify-center text-sm" onClick={() => setMobileOpen(false)}>
-                List your project
-              </Link>
+              {authLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`${link.className} inline-flex h-10 items-center justify-center text-sm`}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           </nav>
           </div>

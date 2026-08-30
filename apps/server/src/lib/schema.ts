@@ -22,6 +22,24 @@ const tagsField = z
   .max(3, "Pick at most 3 tags")
   .refine((tags) => tags.every(isCuratedTag), "Unknown tag")
 
+const socialLinksField = z
+  .array(
+    z.object({
+      platform: z.enum([
+        "GITHUB",
+        "PLAY_STORE",
+        "APP_STORE",
+        "X_TWITTER",
+        "PRODUCT_HUNT",
+        "YOUTUBE",
+        "OTHER",
+      ]),
+      url: z.string().url("Invalid link"),
+    })
+  )
+  .max(6, "Up to 6 extra links")
+  .optional()
+
 export const createListingSchema = z.object({
   name: z.string().min(2, "Name is too short").max(80),
   description: z.string().min(1, "Description is required").max(160),
@@ -30,6 +48,9 @@ export const createListingSchema = z.object({
   videoUrl: z.string().url("Invalid video URL").nullish(),
   photos: z.array(z.string().min(1)).max(5, "Up to 5 photos").optional(),
   tags: tagsField,
+  isOpenSource: z.boolean().optional(),
+  repoUrl: z.string().url("Invalid repo URL").nullish(),
+  socialLinks: socialLinksField,
 })
 
 export const updateListingSchema = createListingSchema
@@ -54,6 +75,10 @@ export const presignSchema = z.object({
   fileName: z.string().min(1, "File name is required").max(255),
   contentType: z.string().min(1, "Content type is required").max(100),
   kind: z.enum(["logo", "photo", "video"]),
+})
+
+export const updateAvatarSchema = z.object({
+  avatarUrl: z.string().regex(/^\/avatars\/avatar-\d{2}\.jpg$/, "Invalid avatar").max(512),
 })
 
 export type PresignBody = z.infer<typeof presignSchema>

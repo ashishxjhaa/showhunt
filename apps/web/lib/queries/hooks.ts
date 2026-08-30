@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { queryKeys, listingsKey, type ListingsFilters } from './keys'
-import type { ListingsResponse, Listing, User } from './types'
+import type { ListingsResponse, User } from './types'
 
 export function useListings(filters?: ListingsFilters) {
     const params = new URLSearchParams()

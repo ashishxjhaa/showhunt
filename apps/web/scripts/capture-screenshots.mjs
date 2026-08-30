@@ -87,7 +87,7 @@ async function main() {
   try {
     const response = await fetch(BASE_URL, { signal: AbortSignal.timeout(5000) })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
-  } catch (error) {
+  } catch {
     console.error(
       `Dev server not reachable at ${BASE_URL}. Run "bun run dev" first.\n` +
         `If using a different port, set SCREENSHOT_BASE_URL (e.g. http://localhost:3001).`

@@ -56,7 +56,7 @@ export default function HeroSection() {
                 href="/listings"
                 className="paper-btn-primary inline-flex h-11 items-center justify-center px-7 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
               >
-                Explore all product
+                Browse all product
               </Link>
             </div>
           </div>
