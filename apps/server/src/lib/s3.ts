@@ -53,9 +53,7 @@ export async function presignPut(key: string, contentType: string): Promise<stri
 }
 
 export function publicUrlFor(key: string): string {
-  // Path-style URL: the bucket name contains dots, which breaks TLS
-  // validation on virtual-hosted-style URLs (*.s3.<region>.amazonaws.com
-  // wildcard cert only matches single-label subdomains)
+  // Path-style URL: dots in the bucket name break TLS on virtual-hosted URLs
   return `https://s3.${REGION}.amazonaws.com/${BUCKET}/${key}`
 }
 
@@ -64,7 +62,7 @@ export async function deleteObject(key: string): Promise<void> {
   await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }))
 }
 
-/** Uploads an in-memory buffer (e.g. a logo scraped from a website) to S3. */
+/** Uploads an in-memory buffer to S3. */
 export async function uploadBuffer(
   key: string,
   contentType: string,

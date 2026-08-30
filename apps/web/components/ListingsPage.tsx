@@ -53,10 +53,10 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                     type="button"
                     onClick={() => setActiveTag(null)}
                     className={cn(
-                        'shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors',
+                        'shrink-0 rounded-[8px] border px-3 py-1.5 text-sm transition-colors',
                         !activeTag
-                            ? 'border-[#F953C6] bg-[var(--paper-accent-soft)] font-medium text-[#B91D73]'
-                            : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#F953C6]/50'
+                            ? 'border-[#DA5CC7] bg-[var(--paper-accent-soft)] font-medium text-[#C431AE]'
+                            : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#DA5CC7]/50'
                     )}
                 >
                     All
@@ -67,10 +67,10 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                         type="button"
                         onClick={() => setActiveTag(activeTag === tag ? null : tag)}
                         className={cn(
-                            'shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors',
+                            'shrink-0 rounded-[8px] border px-3 py-1.5 text-sm transition-colors',
                             activeTag === tag
-                                ? 'border-[#F953C6] bg-[var(--paper-accent-soft)] font-medium text-[#B91D73]'
-                                : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#F953C6]/50'
+                                ? 'border-[#DA5CC7] bg-[var(--paper-accent-soft)] font-medium text-[#C431AE]'
+                                : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#DA5CC7]/50'
                         )}
                     >
                         {tag}

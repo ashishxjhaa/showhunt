@@ -1,41 +1,47 @@
-import { Gift, Sparkles, TrendingUp } from "lucide-react"
-
 const stats = [
   {
-    icon: Gift,
-    title: "Free forever",
-    description: "No launch slots, no featured pricing, no credit card.",
+    stat: "$0",
+    color: "#E93545",
+    label: "Free forever",
+    description: ["No launch slots, no featured pricing,", "and no credit card required."],
   },
   {
-    icon: Sparkles,
-    title: "5 minutes to list",
-    description: "AI drafts your name, description, tags, and logo from your link.",
+    stat: "5 min",
+    color: "#3559E9",
+    label: "AI-assisted listing",
+    description: ["AI drafts your name, description,", "tags, and logo from your link."],
   },
   {
-    icon: TrendingUp,
-    title: "Ranked by builders",
-    description: "The trending feed is decided by real upvotes, never sponsorship.",
+    stat: "100%",
+    color: "#1CB061",
+    label: "Ranked by builders",
+    description: ["The trending feed is decided by real", "upvotes, never sponsorship."],
   },
 ]
 
 export default function StatsBand() {
   return (
     <section className="border-y border-[var(--paper-border)] bg-white">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-10 sm:grid-cols-3 sm:px-8">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <div key={stat.title} className="flex items-start gap-3.5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--paper-accent-soft)] text-[#F953C6]">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--paper-ink)]">{stat.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-[var(--paper-muted)]">{stat.description}</p>
-              </div>
-            </div>
-          )
-        })}
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-14 sm:grid-cols-3 sm:px-10 sm:py-16">
+        {stats.map((stat) => (
+          <div key={stat.label}>
+            <p className="text-5xl font-semibold tracking-tight text-[var(--paper-ink)] sm:text-6xl">
+              {stat.stat}
+            </p>
+            <p className="mt-4 text-sm font-semibold text-white">
+              <span
+                className="box-decoration-clone px-2 py-1"
+                style={{ backgroundColor: stat.color }}
+              >
+                {stat.label}
+              </span>
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--paper-muted)]">
+              <span className="block">{stat.description[0]}</span>
+              <span className="block">{stat.description[1]}</span>
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   )

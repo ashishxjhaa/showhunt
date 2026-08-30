@@ -4,8 +4,8 @@ Showcase, discover, and upvote indie products. Turborepo monorepo.
 
 ## Structure
 
-- `apps/web` — Next.js frontend (app router, Tailwind, shadcn/ui)
-- `apps/server` — Bun + Express API (`/api/v1/*`), Prisma 7 + PostgreSQL (Neon)
+- `apps/web`: Next.js frontend (app router, Tailwind, shadcn/ui)
+- `apps/server`: Bun + Express API (`/api/v1/*`), Prisma 7 + PostgreSQL (Neon)
 
 ## Getting started
 

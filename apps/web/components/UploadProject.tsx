@@ -39,9 +39,9 @@ const MAX_PHOTOS = 5
 const MAX_DESCRIPTION_LENGTH = 100
 
 interface UploadProjectProps {
-    /** When set, the modal edits this listing instead of creating a new one. */
+    /** Edit this listing instead of creating a new one */
     listing?: Listing | null
-    /** Custom trigger content. Pass null to render no trigger (controlled use). */
+    /** Custom trigger. Pass null for no trigger. */
     trigger?: ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
@@ -86,8 +86,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
         setMounted(true)
     }, [])
 
-    // Hydrate the form each time the modal opens: from the listing when
-    // editing, or blank when creating.
+    // Fill the form from the listing when editing, blank when creating
     useEffect(() => {
         if (!open) return
         if (listing) {
@@ -286,7 +285,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                 <button
                     type="button"
                     onClick={() => setOpen(true)}
-                    className="paper-btn-primary inline-flex h-10 shrink-0 items-center gap-2 px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+                    className="paper-btn-primary inline-flex h-10 shrink-0 items-center gap-2 px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
                 >
                     <Plus className="h-4 w-4" />
                     Upload project
@@ -318,7 +317,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                             <button
                                 type="button"
                                 onClick={closeModal}
-                                className="shrink-0 rounded-md p-1 text-[var(--paper-muted)] transition-colors hover:text-[var(--paper-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+                                className="shrink-0 rounded-[8px] p-1 text-[var(--paper-muted)] transition-colors hover:text-[var(--paper-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
                                 aria-label="Close"
                             >
                                 <X className="h-5 w-5" />
@@ -386,7 +385,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                             onClick={handleAutofill}
                                             disabled={enrich.isPending}
                                             title="Fetch name, description, tags and logo from the link with AI"
-                                            className="inline-flex h-[38px] shrink-0 items-center gap-1.5 rounded-lg border border-[#F953C6] bg-[var(--paper-accent-soft)] px-3 text-xs font-semibold text-[#B91D73] transition-colors hover:bg-[#F953C6]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                            className="inline-flex h-[38px] shrink-0 items-center gap-1.5 rounded-[8px] border border-[#DA5CC7] bg-[var(--paper-accent-soft)] px-3 text-xs font-semibold text-[#C431AE] transition-colors hover:bg-[#DA5CC7]/20 disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             {enrich.isPending ? (
                                                 <Spinner className="h-3.5 w-3.5" />
@@ -437,7 +436,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                                     type="button"
                                                     disabled={uploadingLogo}
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className="mt-1 text-sm text-[#F953C6] transition-colors hover:text-[#B91D73] disabled:opacity-50"
+                                                    className="mt-1 text-sm text-[#DA5CC7] transition-colors hover:text-[#C431AE] disabled:opacity-50"
                                                 >
                                                     Change
                                                 </button>
@@ -447,9 +446,9 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                         <button
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] px-4 py-8 transition-colors hover:border-[#F953C6]/50 hover:bg-[var(--paper-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+                                            className="flex w-full flex-col items-center justify-center gap-2 rounded-[8px] border border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] px-4 py-8 transition-colors hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
                                         >
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--paper-accent-soft)] text-[#F953C6]">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--paper-accent-soft)] text-[#DA5CC7]">
                                                 <Upload className="h-5 w-5" />
                                             </div>
                                             <span className="text-sm font-medium text-[var(--paper-ink)]">Choose logo</span>
@@ -489,7 +488,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                                     onClick={() =>
                                                         setPhotos((prev) => prev.filter((p) => p !== url))
                                                     }
-                                                    className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white transition-colors hover:bg-black/80"
+                                                    className="absolute right-1 top-1 rounded-[8px] bg-black/60 p-0.5 text-white transition-colors hover:bg-black/80"
                                                     aria-label={`Remove photo ${index + 1}`}
                                                 >
                                                     <X className="h-3 w-3" />
@@ -502,12 +501,12 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                                 type="button"
                                                 onClick={() => photoInputRef.current?.click()}
                                                 disabled={uploadingPhotos}
-                                                className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] transition-colors hover:border-[#F953C6]/50 hover:bg-[var(--paper-accent-soft)] disabled:opacity-60"
+                                                className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-[8px] border border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] transition-colors hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)] disabled:opacity-60"
                                             >
                                                 {uploadingPhotos ? (
-                                                    <Spinner className="h-4 w-4 text-[#F953C6]" />
+                                                    <Spinner className="h-4 w-4 text-[#DA5CC7]" />
                                                 ) : (
-                                                    <Images className="h-5 w-5 text-[#F953C6]" />
+                                                    <Images className="h-5 w-5 text-[#DA5CC7]" />
                                                 )}
                                                 <span className="text-[10px] text-[var(--paper-muted)]">
                                                     {uploadingPhotos ? 'Uploading' : 'Add photo'}
@@ -531,7 +530,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
 
                                     {video ? (
                                         <div className="flex items-center gap-3 rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] p-3">
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--paper-accent-soft)] text-[#F953C6]">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--paper-accent-soft)] text-[#DA5CC7]">
                                                 <Film className="h-5 w-5" />
                                             </div>
                                             <p className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--paper-ink)]">
@@ -544,7 +543,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                                     setVideo('')
                                                     setVideoFileName('')
                                                 }}
-                                                className="text-sm text-[#F953C6] transition-colors hover:text-[#B91D73] disabled:opacity-50"
+                                                className="text-sm text-[#DA5CC7] transition-colors hover:text-[#C431AE] disabled:opacity-50"
                                             >
                                                 Remove
                                             </button>
@@ -554,12 +553,12 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                             type="button"
                                             onClick={() => videoInputRef.current?.click()}
                                             disabled={uploadingVideo}
-                                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] px-4 py-4 transition-colors hover:border-[#F953C6]/50 hover:bg-[var(--paper-accent-soft)] disabled:opacity-60"
+                                            className="flex w-full items-center justify-center gap-2 rounded-[8px] border border-dashed border-[var(--paper-border)] bg-[var(--paper-surface)] px-4 py-4 transition-colors hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)] disabled:opacity-60"
                                         >
                                             {uploadingVideo ? (
-                                                <Spinner className="h-4 w-4 text-[#F953C6]" />
+                                                <Spinner className="h-4 w-4 text-[#DA5CC7]" />
                                             ) : (
-                                                <Film className="h-4 w-4 text-[#F953C6]" />
+                                                <Film className="h-4 w-4 text-[#DA5CC7]" />
                                             )}
                                             <span className="text-sm text-[var(--paper-ink)]">
                                                 {uploadingVideo ? 'Uploading video...' : 'Choose video'}
@@ -591,10 +590,10 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                                 }}
                                                 disabled={!selectedTags.includes(tag) && selectedTags.length >= 3}
                                                 className={cn(
-                                                    'rounded-lg border px-2.5 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                                                    'rounded-[8px] border px-2.5 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                                                     selectedTags.includes(tag)
-                                                        ? 'border-[#F953C6] bg-[var(--paper-accent-soft)] text-[#B91D73]'
-                                                        : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#F953C6]/50'
+                                                        ? 'border-[#DA5CC7] bg-[var(--paper-accent-soft)] text-[#C431AE]'
+                                                        : 'border-[var(--paper-border)] bg-white text-[var(--paper-muted)] hover:border-[#DA5CC7]/50'
                                                 )}
                                             >
                                                 {tag}
@@ -614,7 +613,7 @@ function UploadProject({ listing, trigger, open: openProp, onOpenChange }: Uploa
                                     uploadingPhotos ||
                                     uploadingVideo
                                 }
-                                className="paper-btn-primary mt-1 flex h-10 w-full shrink-0 items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40 disabled:opacity-60"
+                                className="paper-btn-primary mt-1 flex h-10 w-full shrink-0 items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40 disabled:opacity-60"
                             >
                                 {uploadListing.isPending || updateListing.isPending ? (
                                     <Spinner className="w-4 h-4" />

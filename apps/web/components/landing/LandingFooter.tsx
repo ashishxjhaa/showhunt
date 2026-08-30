@@ -12,7 +12,6 @@ const productLinks: FooterLink[] = [
   { href: "/listings", label: "Browse listings" },
   { href: "/signup", label: "List your project" },
   { href: "/#how-it-works", label: "How it works" },
-  { href: "/#feed", label: "Live feed" },
   { href: "/#faq", label: "FAQ" },
 ]
 
@@ -32,13 +31,13 @@ const resourceLinks: FooterLink[] = [
 const connectLinks: FooterLink[] = [
   { href: "https://github.com/ashishxjhaa", label: "GitHub", external: true },
   { href: "https://x.com/ashishxjha", label: "X (Twitter)", external: true },
-  { href: "mailto:hello@showhunt.ashishjha.xyz", label: "Email us", external: true },
+  { href: "mailto:ashishxyzjha@gmail.com", label: "Email us", external: true },
 ]
 
 const socials = [
-  { href: "https://github.com/ashishxjhaa", label: "GitHub", icon: Github },
+  { href: "https://github.com/ashishxjhaa/showhunt", label: "GitHub", icon: Github },
   { href: "https://x.com/ashishxjha", label: "X (Twitter)", icon: Twitter },
-  { href: "mailto:hello@showhunt.ashishjha.xyz", label: "Email", icon: Mail },
+  { href: "mailto:ashishxyzjha@gmail.com", label: "Email", icon: Mail },
 ]
 
 const columns = [
@@ -49,12 +48,12 @@ const columns = [
 
 export default function LandingFooter() {
   return (
-    <footer className="border-t border-[var(--paper-border)] bg-[var(--paper-surface)]">
-      <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
+    <footer className="bg-[var(--paper-surface)]">
+      <div className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-10 sm:py-16">
         <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           <div>
             <Link href="/" className="flex items-center gap-2.5">
-              <Image src="/showcase.png" alt="ShowHunt" width={32} height={32} className="rounded-lg" />
+              <Image src="/showcase.svg" alt="ShowHunt" width={32} height={32} className="rounded-lg" />
               <span className="text-lg font-semibold tracking-tight text-[var(--paper-ink)]">ShowHunt</span>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--paper-muted)]">
@@ -70,7 +69,7 @@ export default function LandingFooter() {
                     target={social.href.startsWith("http") ? "_blank" : undefined}
                     rel="noopener noreferrer"
                     aria-label={social.label}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors hover:border-[#F953C6]/40 hover:bg-[var(--paper-accent-soft)] hover:text-[#F953C6]"
+                    className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors hover:border-[#DA5CC7]/40 hover:bg-[var(--paper-accent-soft)] hover:text-[#DA5CC7]"
                   >
                     <Icon className="h-4 w-4" />
                   </a>
@@ -89,7 +88,7 @@ export default function LandingFooter() {
                       href={link.href}
                       target={link.external ? "_blank" : undefined}
                       rel={link.external ? "noopener noreferrer" : undefined}
-                      className="text-sm text-[var(--paper-muted)] transition-colors hover:text-[#F953C6]"
+                      className="text-sm text-[var(--paper-muted)] transition-colors hover:text-[#DA5CC7]"
                     >
                       {link.label}
                     </Link>
@@ -107,10 +106,10 @@ export default function LandingFooter() {
           <p className="text-xs text-[var(--paper-muted)] select-none">
             Built by{" "}
             <Link
-              href="https://github.com/ashishxjhaa"
+              href="https://www.ashishjha.xyz"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-[var(--paper-ink)] transition-colors hover:text-[#F953C6]"
+              className="font-medium text-[var(--paper-ink)] transition-colors hover:text-[#DA5CC7]"
             >
               Ashish Jha
             </Link>

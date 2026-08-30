@@ -62,9 +62,9 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 border-x border-[var(--app-rail-color)] px-5 py-3 sm:px-8 sm:py-3.5">
         <Link
           href="/"
-          className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+          className="flex min-w-0 shrink items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
         >
-          <Image src="/showcase.png" alt="ShowHunt" width={30} height={30} className="rounded-md" />
+          <Image src="/showcase.svg" alt="ShowHunt" width={30} height={30} className="rounded-md" />
           <span className="text-base font-semibold tracking-tight text-[var(--paper-ink)]">ShowHunt</span>
         </Link>
 
@@ -103,9 +103,9 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
               <button
                 type="button"
                 onClick={() => setOpenProfile((o) => !o)}
-                className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[var(--paper-ink)] transition-colors hover:bg-[var(--paper-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+                className="flex items-center gap-1.5 rounded-[8px] px-2 py-1.5 text-[var(--paper-ink)] transition-colors hover:bg-[var(--paper-accent-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#F953C6]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#DA5CC7]">
                   {initials}
                 </div>
                 <ChevronDown className="h-4 w-4 text-[var(--paper-muted)]" />
@@ -115,7 +115,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                 <div className="absolute top-full right-0 mt-2 w-56 z-50 overflow-hidden rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] shadow-lg">
                   <div className="border-b border-[var(--paper-border)] bg-[#f7f5fe] p-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#F953C6]">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-accent-soft)] text-sm font-medium text-[#DA5CC7]">
                         {initials}
                       </div>
                       <div className="min-w-0">
@@ -131,7 +131,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-500 transition-colors hover:bg-red-50"
+                      className="flex w-full items-center gap-2 rounded-[8px] px-3 py-2 text-sm text-red-500 transition-colors hover:bg-red-50"
                     >
                       <LogOutIcon size={16} />
                       Log out
@@ -144,13 +144,13 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
             <>
               <Link
                 href="/signin"
-                className="paper-btn-outline inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+                className="paper-btn-outline inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="paper-btn-primary inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+                className="paper-btn-primary inline-flex h-9 items-center px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
               >
                 Register
               </Link>
@@ -160,7 +160,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
 
         <button
           type="button"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--paper-border)] bg-[var(--paper-surface)] text-[var(--paper-ink)] shadow-sm md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)] text-[var(--paper-ink)] shadow-sm md:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
           onClick={() => setMobileOpen((o) => !o)}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
@@ -210,7 +210,7 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                     handleLogout()
                     setMobileOpen(false)
                   }}
-                  className="mt-3 rounded-md px-3 py-2.5 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
+                  className="mt-3 rounded-[8px] px-3 py-2.5 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
                 >
                   Log out
                 </button>

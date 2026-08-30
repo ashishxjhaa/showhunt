@@ -57,7 +57,7 @@ export default function Component({
 
   return (
     <div>
-      {/* Password input field with toggle visibility button */}
+      {/* Password input with visibility toggle */}
       <div className="*:not-first:mt-2">
         <Label htmlFor={id} />
         <div className="relative">
@@ -74,7 +74,7 @@ export default function Component({
             aria-controls="password"
             aria-label={isVisible ? "Hide password" : "Show password"}
             aria-pressed={isVisible}
-            className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md text-[var(--paper-muted)] outline-none focus:z-10 focus-visible:ring-2 focus-visible:ring-[#F953C6]/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md text-[var(--paper-muted)] outline-none focus:z-10 focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
             onClick={toggleVisibility}
             type="button"
           >

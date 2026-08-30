@@ -23,9 +23,8 @@ export function validateFileType(file: File, kind: UploadKind): boolean {
 }
 
 /**
- * Uploads a file directly to S3 via a presigned URL. The server only
- * issues the URL, so the file bytes never pass through the API.
- * Returns the public URL of the uploaded file.
+ * Uploads a file straight to S3 via a presigned URL, so the file bytes
+ * never pass through the API. Returns the public URL.
  */
 export async function uploadFile(file: File, kind: UploadKind): Promise<string> {
     const res = await api.post<{ uploadUrl: string; publicUrl: string }>(

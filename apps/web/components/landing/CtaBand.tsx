@@ -1,32 +1,41 @@
+import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 
 export default function CtaBand() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-5 pb-20 sm:px-8 sm:pb-28">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#F953C6] to-[#B91D73] px-8 py-16 text-center sm:px-16 sm:py-20">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-20 -right-12 h-72 w-72 rounded-full bg-white/10 blur-2xl"
+    <section
+      id="cta-banner"
+      className="mx-auto w-full max-w-7xl px-5 sm:px-10"
+    >
+      <div className="relative flex h-[400px] items-center overflow-hidden rounded-[8px] sm:h-[500px]">
+        {/* Banner background image */}
+        <Image
+          src="/cta-banner.avif"
+          alt=""
+          fill
+          sizes="(min-width: 80rem) 80rem, 100vw"
+          className="object-cover"
         />
 
-        <div className="relative">
-          <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Your launch is one listing away.
-          </h2>
-          <p className="mx-auto mt-3 max-w-md text-white/85">
-            Join the builders shipping in public. List your project on ShowHunt today, free forever.
-          </p>
+        {/* Overlay content */}
+        <div className="relative z-10 flex w-full flex-col items-start pl-6 pr-6 sm:pl-[65px] sm:pr-10">
+          <div className="flex w-full flex-col items-start gap-3">
+            <h2 className="text-[42px] font-semibold leading-[1.05] tracking-[-0.02em] text-white sm:text-[42px]">
+              Your launch is
+              <span className="block">one listing away</span>
+            </h2>
+            <p className="text-base font-normal leading-[1.5] tracking-[-0.01em] text-white/85">
+              Join the builders shipping in public.
+              <br />
+              List your project on ShowHunt today.
+            </p>
+          </div>
+
           <Link
             href="/signup"
-            className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-[0.625rem] bg-white px-8 text-sm font-semibold text-[#B91D73] shadow-md transition-all hover:brightness-105 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            className="mt-[22px] inline-flex h-11 shrink-0 items-center justify-center rounded-[8px] bg-[#DA5CC7] px-[18px] text-sm font-semibold leading-none tracking-[-0.01em] text-white transition-colors hover:bg-[#D14BC0] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
-            Get started for free
-            <ArrowRight className="h-4 w-4" />
+            Begin Now
           </Link>
         </div>
       </div>

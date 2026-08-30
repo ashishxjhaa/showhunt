@@ -5,8 +5,8 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion"
 import { Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-function LandingAccordion({ ...props }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
-  return <AccordionPrimitive.Root {...props} />
+function LandingAccordion({ className, ...props }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
+  return <AccordionPrimitive.Root className={cn("flex w-full flex-col gap-2", className)} {...props} />
 }
 
 function LandingAccordionItem({
@@ -16,7 +16,7 @@ function LandingAccordionItem({
   return (
     <AccordionPrimitive.Item
       className={cn(
-        "rounded-xl border border-[var(--paper-border)] bg-[var(--paper-surface)] px-5 mb-2",
+        "border-x-0 border-t-0 border-b border-b-[var(--paper-border)] bg-transparent px-5 rounded-none",
         className
       )}
       {...props}
@@ -33,13 +33,13 @@ function LandingAccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={cn(
-          "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium text-[var(--paper-ink)] transition-all outline-none hover:text-[#F953C6] focus-visible:ring-2 focus-visible:ring-[#F953C6]/40 [&[data-state=open]>svg]:rotate-45 [&[data-state=open]]:text-[#F953C6]",
+          "flex flex-1 items-start justify-start gap-4 rounded-md py-5 text-left text-lg font-medium text-[var(--paper-ink)] transition-all outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40 [&[data-state=open]>svg]:rotate-45 [&[data-state=open]>svg]:text-[#DA5CC7]",
           className
         )}
         {...props}
       >
+        <Plus className="pointer-events-none mt-1 size-5 shrink-0 text-[#DA5CC7] transition-transform duration-300" />
         {children}
-        <Plus className="pointer-events-none size-4 shrink-0 text-[var(--paper-muted)] transition-transform duration-300 mt-0.5" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )
@@ -52,10 +52,20 @@ function LandingAccordionContent({
 }: React.ComponentProps<typeof AccordionPrimitive.Content>) {
   return (
     <AccordionPrimitive.Content
-      className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
+      className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-base"
       {...props}
     >
-      <div className={cn("pb-4 text-[var(--paper-muted)] leading-relaxed", className)}>{children}</div>
+      <div
+        className={cn("cursor-pointer pb-5 text-[var(--paper-muted)] leading-relaxed", className)}
+        onClick={(e) => {
+          // Clicking the answer collapses the item
+          const region = e.currentTarget.closest("[role='region']")
+          const trigger = region?.parentElement?.querySelector("button")
+          if (trigger) trigger.click()
+        }}
+      >
+        {children}
+      </div>
     </AccordionPrimitive.Content>
   )
 }

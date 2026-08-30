@@ -40,15 +40,8 @@ export default function SignIn() {
 
   return (
     <AuthShell>
-      <AuthCard
-        title="Welcome back"
-        subtitle={
-          <>
-            Don&apos;t have an account?
-            <AuthCardLink href="/signup">Sign up</AuthCardLink>
-          </>
-        }
-      >
+      <AuthCard title="Welcome back">
+        <GoogleSignInButton />
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[#0F0F0F]">Email</label>
@@ -68,12 +61,15 @@ export default function SignIn() {
           <button
             type="submit"
             disabled={loading}
-            className="paper-btn-primary flex h-10 w-full items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F953C6]/40 disabled:opacity-60"
+            className="paper-btn-primary flex h-10 w-full items-center justify-center text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40 disabled:opacity-60"
           >
             {loading ? <Spinner className="h-4 w-4" /> : "Log in"}
           </button>
         </form>
-        <GoogleSignInButton />
+        <p className="mt-5 text-center text-sm text-[#6B6879]">
+          Don&apos;t have an account?
+          <AuthCardLink href="/signup">Sign up</AuthCardLink>
+        </p>
       </AuthCard>
     </AuthShell>
   )

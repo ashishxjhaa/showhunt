@@ -46,25 +46,30 @@ const faqs = [
 
 export default function FaqSection() {
   return (
-    <LandingSection id="faq">
-      <div className="mb-10 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight text-[var(--paper-ink)] sm:text-4xl">
-          Frequently asked questions
-        </h2>
-        <p className="mt-3 text-[var(--paper-muted)]">Everything you need to know before you launch.</p>
-      </div>
+    <LandingSection id="faq" className="border-b-0! flex min-h-screen items-center">
+      <div className="grid flex-1 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:gap-16">
+        {/* Left: heading */}
+        <div>
+          <h2 className="text-5xl font-semibold tracking-tight text-[var(--paper-ink)] sm:text-6xl">
+            <span className="block">Frequently</span>
+            <span className="mt-3 block">Asked</span>
+            <span className="mt-3 block">Questions</span>
+          </h2>
+        </div>
 
-      <div className="mx-auto max-w-2xl">
-        <LandingAccordion type="single" collapsible className="w-full">
-          {faqs.map((faq) => (
-            <LandingAccordionItem key={faq.value} value={faq.value}>
-              <LandingAccordionTrigger>{faq.question}</LandingAccordionTrigger>
-              <LandingAccordionContent>
-                <p className="text-balance">{faq.answer}</p>
-              </LandingAccordionContent>
-            </LandingAccordionItem>
-          ))}
-        </LandingAccordion>
+        {/* Right: accordion */}
+        <div>
+          <LandingAccordion type="single" collapsible className="w-full">
+            {faqs.map((faq) => (
+              <LandingAccordionItem key={faq.value} value={faq.value}>
+                <LandingAccordionTrigger>{faq.question}</LandingAccordionTrigger>
+                <LandingAccordionContent>
+                  <p className="text-balance">{faq.answer}</p>
+                </LandingAccordionContent>
+              </LandingAccordionItem>
+            ))}
+          </LandingAccordion>
+        </div>
       </div>
     </LandingSection>
   )

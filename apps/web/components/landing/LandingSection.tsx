@@ -11,7 +11,7 @@ export default function LandingSection({ id, children, className }: LandingSecti
     <section
       id={id}
       className={cn(
-        "landing-section mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 sm:py-28",
+        "landing-section mx-auto w-full max-w-7xl px-5 py-20 sm:px-10 sm:py-28",
         className
       )}
     >
