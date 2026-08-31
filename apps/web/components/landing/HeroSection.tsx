@@ -63,7 +63,7 @@ export default function HeroSection() {
 
           {/* Right: card deck, cycles by itself */}
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-            <AnimatedList className="relative" delay={3000}>
+            <AnimatedList className="relative" delay={2500}>
               {heroListings.map((listing) => (
                 <InteractiveListingCard key={listing.name} {...listing} />
               ))}
