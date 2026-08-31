@@ -311,7 +311,7 @@ export async function getComments(req: Request, res: Response) {
   const comments = await prisma.comment.findMany({
     where: { listingId },
     include: {
-      user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+      user: { select: { id: true, fullName: true, avatarUrl: true } },
     },
     orderBy: { createdAt: "desc" },
   })
@@ -324,7 +324,6 @@ export async function getComments(req: Request, res: Response) {
       user: {
         id: c.user.id,
         fullName: c.user.fullName,
-        email: c.user.email,
         avatarUrl: c.user.avatarUrl,
       },
     })),
@@ -347,7 +346,7 @@ export async function createComment(req: Request, res: Response) {
       userId: req.userId!,
     },
     include: {
-      user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+      user: { select: { id: true, fullName: true, avatarUrl: true } },
     },
   })
 
@@ -359,7 +358,6 @@ export async function createComment(req: Request, res: Response) {
       user: {
         id: comment.user.id,
         fullName: comment.user.fullName,
-        email: comment.user.email,
         avatarUrl: comment.user.avatarUrl,
       },
     },

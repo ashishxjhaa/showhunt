@@ -12,16 +12,21 @@ import type { PresignBody } from "../lib/schema"
 
 export async function createPresignedUpload(req: Request, res: Response) {
   const userId = req.userId!
-  const { fileName, contentType, kind } = req.body as PresignBody
+  const { contentType, kind, fileSize } = req.body as PresignBody
+  const limits = UPLOAD_LIMITS[kind as UploadKind]
 
   const ext = extensionFor(contentType, kind as UploadKind)
   if (!ext) {
-    const label = UPLOAD_LIMITS[kind as UploadKind].label
-    throw new AppError(`${label} must be a supported file type`, 400)
+    throw new AppError(`${limits.label} must be a supported file type`, 400)
+  }
+
+  if (fileSize > limits.maxBytes) {
+    const maxMb = Math.round(limits.maxBytes / (1024 * 1024))
+    throw new AppError(`${limits.label} must be under ${maxMb}MB`, 400)
   }
 
   const key = buildKey(userId, kind, ext)
-  const uploadUrl = await presignPut(key, contentType)
+  const uploadUrl = await presignPut(key, contentType, fileSize)
   const publicUrl = publicUrlFor(key)
 
   res.status(201).json({ uploadUrl, publicUrl, key })

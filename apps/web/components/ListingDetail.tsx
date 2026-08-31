@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useMemo, useState, type ComponentType, type FormEvent } from "react"
+import { useMemo, useState, type ComponentType, type FormEvent } from "react"
 import { toast } from "sonner"
 import {
     Apple,
@@ -89,10 +89,6 @@ function buildMediaItems(listing: Listing): MediaItem[] {
 function MediaGallery({ listing }: { listing: Listing }) {
     const media = useMemo(() => buildMediaItems(listing), [listing])
     const [active, setActive] = useState(0)
-
-    useEffect(() => {
-        setActive(0)
-    }, [listing.id])
 
     if (media.length === 0) return null
 
@@ -276,7 +272,7 @@ function CommentComposer({
 }
 
 function CommentItem({ comment }: { comment: ListingComment }) {
-    const avatar = resolveAvatarSrc(comment.user.avatarUrl, comment.user.email)
+    const avatar = resolveAvatarSrc(comment.user.avatarUrl, comment.user.id)
     return (
         <article className="flex gap-3">
             <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--paper-border)]">
@@ -403,7 +399,7 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
                 <div className="min-w-0 space-y-6">
-                    <MediaGallery listing={listing} />
+                    <MediaGallery key={listing.id} listing={listing} />
 
 
                     <section

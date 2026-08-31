@@ -23,7 +23,6 @@ export interface ListingComment {
     user: {
         id: string
         fullName: string
-        email: string
         avatarUrl: string | null
     }
 }

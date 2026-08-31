@@ -38,6 +38,10 @@ const socialLinksField = z
     })
   )
   .max(6, "Up to 6 extra links")
+  .refine(
+    (links) => new Set(links.map((l) => l.platform)).size === links.length,
+    "Each platform can only be used once"
+  )
   .optional()
 
 export const createListingSchema = z.object({
@@ -75,6 +79,7 @@ export const presignSchema = z.object({
   fileName: z.string().min(1, "File name is required").max(255),
   contentType: z.string().min(1, "Content type is required").max(100),
   kind: z.enum(["logo", "photo", "video"]),
+  fileSize: z.number().int().positive("File size is required"),
 })
 
 export const updateAvatarSchema = z.object({

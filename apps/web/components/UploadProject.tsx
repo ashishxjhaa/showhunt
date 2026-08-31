@@ -234,7 +234,7 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
             return null
         }
         const limitMb = UPLOAD_LIMITS_MB[kind]
-        if (limitMb !== null && file.size > limitMb * 1024 * 1024) {
+        if (file.size > limitMb * 1024 * 1024) {
             toast.error(`File must be under ${limitMb}MB`)
             return null
         }
@@ -379,6 +379,13 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
                     toast.error('Every social link must be a full URL starting with https://')
                     return false
                 }
+            }
+            const platforms = socialRows
+                .map((r) => r.platform)
+                .filter((p): p is PlatformValue => p !== '')
+            if (new Set(platforms).size !== platforms.length) {
+                toast.error('Each platform can only be used once')
+                return false
             }
             return true
         }
@@ -687,7 +694,9 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
                                                   ? videoFileName || 'Video ready'
                                                   : 'Upload demo video'}
                                         </p>
-                                        <p className="mt-0.5 text-xs text-[var(--paper-muted)]">MP4, WebM or MOV</p>
+                                        <p className="mt-0.5 text-xs text-[var(--paper-muted)]">
+                                            MP4, WebM or MOV · under {UPLOAD_LIMITS_MB.video}MB
+                                        </p>
                                         {video && !uploadingVideo && (
                                             <span className="mt-1.5 inline-block text-sm font-medium text-[#DA5CC7]">Replace</span>
                                         )}
@@ -734,7 +743,6 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
                                                     key={opt.value}
                                                     value={opt.value}
                                                     disabled={
-                                                        opt.value !== 'OTHER' &&
                                                         opt.value !== row.platform &&
                                                         usedPlatforms.has(opt.value)
                                                     }
