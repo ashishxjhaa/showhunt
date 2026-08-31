@@ -2,11 +2,14 @@
 
 import { toast } from "sonner";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import AuthShell from "./AuthShell";
 import AuthCard, { AuthCardLink } from "./AuthCard";
 import AuthForm, { type AuthField } from "./AuthForm";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { api, apiErrorMessage } from "@/lib/api";
+import { queryKeys } from "@/lib/queries/keys";
 
 const fields: AuthField[] = [
   { key: "email", label: "Email", type: "email", placeholder: "you@example.com" },
@@ -15,6 +18,8 @@ const fields: AuthField[] = [
 
 export default function SignIn() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (values: Record<string, string>) => {
     if (!values.email || !values.password) {
@@ -25,10 +30,10 @@ export default function SignIn() {
     setLoading(true);
     try {
       await api.post("/api/v1/auth/signin", values);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.me });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.listings });
       toast.success("Welcome to Showhunt 🎉");
-      // Hard reload so cached logged-out state is fully reset
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.assign("/listings");
+      router.push("/listings");
     } catch (err) {
       toast.error(apiErrorMessage(err, "Signin failed"));
       setLoading(false);

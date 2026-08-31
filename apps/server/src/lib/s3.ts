@@ -15,7 +15,8 @@ export const s3Client = new S3Client({ region: REGION })
 export const UPLOAD_LIMITS = {
   logo: { label: "Logo", maxBytes: 5 * 1024 * 1024 },
   photo: { label: "Photo", maxBytes: 5 * 1024 * 1024 },
-  video: { label: "Video", maxBytes: 100 * 1024 * 1024 },
+  // No client/server size cap for demo videos
+  video: { label: "Video", maxBytes: null },
 } as const
 
 export type UploadKind = keyof typeof UPLOAD_LIMITS

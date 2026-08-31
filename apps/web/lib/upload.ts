@@ -3,7 +3,7 @@ import { api } from '@/lib/api'
 export const UPLOAD_LIMITS_MB = {
     logo: 5,
     photo: 5,
-    video: 100,
+    video: null,
 } as const
 
 export type UploadKind = keyof typeof UPLOAD_LIMITS_MB

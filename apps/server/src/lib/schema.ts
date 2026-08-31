@@ -81,7 +81,12 @@ export const updateAvatarSchema = z.object({
   avatarUrl: z.string().regex(/^\/avatars\/avatar-\d{2}\.jpg$/, "Invalid avatar").max(512),
 })
 
+export const createCommentSchema = z.object({
+  content: z.string().trim().min(1, "Comment cannot be empty").max(500, "Comment is too long"),
+})
+
 export type PresignBody = z.infer<typeof presignSchema>
 export type CreateListingBody = z.infer<typeof createListingSchema>
 export type UpdateListingBody = z.infer<typeof updateListingSchema>
+export type CreateCommentBody = z.infer<typeof createCommentSchema>
 

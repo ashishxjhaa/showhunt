@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { queryKeys, listingsKey, type ListingsFilters } from './keys'
-import type { ListingsResponse, User } from './types'
+import type { Listing, ListingComment, ListingsResponse, User } from './types'
 
 export function useListings(filters?: ListingsFilters) {
     const params = new URLSearchParams()
@@ -17,6 +17,30 @@ export function useListings(filters?: ListingsFilters) {
                 `/api/v1/listings${qs ? `?${qs}` : ''}`
             )
             return res.data
+        },
+    })
+}
+
+export function useListing(id: string | undefined) {
+    return useQuery({
+        queryKey: queryKeys.listing(id ?? ''),
+        enabled: !!id,
+        queryFn: async () => {
+            const res = await api.get<{ listing: Listing }>(`/api/v1/listings/${id}`)
+            return res.data.listing
+        },
+    })
+}
+
+export function useComments(listingId: string | undefined) {
+    return useQuery({
+        queryKey: queryKeys.comments(listingId ?? ''),
+        enabled: !!listingId,
+        queryFn: async () => {
+            const res = await api.get<{ comments: ListingComment[] }>(
+                `/api/v1/listings/${listingId}/comments`
+            )
+            return res.data.comments
         },
     })
 }

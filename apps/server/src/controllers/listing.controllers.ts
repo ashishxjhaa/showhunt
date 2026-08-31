@@ -2,7 +2,7 @@ import type { Request, Response } from "express"
 import { prisma } from "../lib/prisma"
 import { AppError } from "../lib/errors"
 import { deleteObject } from "../lib/s3"
-import { generateMetadata, persistRemoteImage, scrapePage } from "../lib/deepseek"
+import { generateMetadata, scrapePage } from "../lib/deepseek"
 import { CURATED_TAGS } from "../lib/tags"
 import type { CreateListingBody, UpdateListingBody } from "../lib/schema"
 import type { Prisma } from "../generated/prisma/client"
@@ -14,6 +14,7 @@ function serializeListing(
       upvotes: { select: { userId: true } }
       links: true
       photos: true
+      _count: { select: { comments: true } }
     }
   }>
 ) {
@@ -30,6 +31,7 @@ function serializeListing(
     repoUrl: listing.repoUrl,
     tags: listing.tags,
     upvotes: listing.upvoteCount,
+    comments: listing._count.comments,
     hasUpvoted: listing.upvotes.length > 0,
     links: listing.links.map((l) => ({ platform: l.platform, url: l.url })),
     user: { fullName: listing.user.fullName },
@@ -42,6 +44,7 @@ const listingInclude = {
   upvotes: { select: { userId: true } },
   links: true,
   photos: { orderBy: { position: "asc" as const } },
+  _count: { select: { comments: true } },
 } as const
 
 
@@ -89,16 +92,10 @@ export async function enrichListing(req: Request, res: Response) {
   const page = await scrapePage(url)
   const metadata = await generateMetadata(page, url)
 
-  let logoUrl: string | null = null
-  if (page.image) {
-    logoUrl = await persistRemoteImage(page.image, req.userId!)
-  }
-
+  // Name + description only; logo and tags are filled by the user
   res.json({
     name: metadata.name,
     description: metadata.description,
-    tags: metadata.tags,
-    logoUrl,
   })
 }
 
@@ -281,4 +278,90 @@ export async function toggleUpvote(req: Request, res: Response) {
     }),
   ])
   res.json({ upvoted: true })
+}
+
+export async function getListing(req: Request, res: Response) {
+  const listingId = req.params.id as string
+
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    include: {
+      ...listingInclude,
+      upvotes: {
+        where: { userId: req.userId ?? "__none__" },
+        select: { userId: true },
+      },
+    },
+  })
+  if (!listing) {
+    throw new AppError("Listing not found", 404)
+  }
+
+  res.json({ listing: serializeListing(listing) })
+}
+
+export async function getComments(req: Request, res: Response) {
+  const listingId = req.params.id as string
+
+  const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { id: true } })
+  if (!listing) {
+    throw new AppError("Listing not found", 404)
+  }
+
+  const comments = await prisma.comment.findMany({
+    where: { listingId },
+    include: {
+      user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  res.json({
+    comments: comments.map((c) => ({
+      id: c.id,
+      content: c.content,
+      createdAt: c.createdAt,
+      user: {
+        id: c.user.id,
+        fullName: c.user.fullName,
+        email: c.user.email,
+        avatarUrl: c.user.avatarUrl,
+      },
+    })),
+  })
+}
+
+export async function createComment(req: Request, res: Response) {
+  const listingId = req.params.id as string
+  const { content } = req.body as { content: string }
+
+  const listing = await prisma.listing.findUnique({ where: { id: listingId }, select: { id: true } })
+  if (!listing) {
+    throw new AppError("Listing not found", 404)
+  }
+
+  const comment = await prisma.comment.create({
+    data: {
+      content,
+      listingId,
+      userId: req.userId!,
+    },
+    include: {
+      user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+    },
+  })
+
+  res.status(201).json({
+    comment: {
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      user: {
+        id: comment.user.id,
+        fullName: comment.user.fullName,
+        email: comment.user.email,
+        avatarUrl: comment.user.avatarUrl,
+      },
+    },
+  })
 }

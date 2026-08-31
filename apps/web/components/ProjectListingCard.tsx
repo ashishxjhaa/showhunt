@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowBigUp, SquareArrowOutUpRight } from "lucide-react"
+import { ArrowBigUp, MessageSquare, SquareArrowOutUpRight } from "lucide-react"
 import { motion } from "motion/react"
 import type { Listing } from "@/lib/queries/types"
 
@@ -14,6 +14,9 @@ interface ProjectListingCardProps {
     showCounts?: boolean
     actionSlot?: React.ReactNode
 }
+
+const actionBtnClass =
+    "flex w-12 h-12 sm:w-14 sm:h-14 flex-col items-center justify-center rounded-[8px] border cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
 
 export default function ProjectListingCard({
     listing,
@@ -35,7 +38,7 @@ export default function ProjectListingCard({
 
     return (
         <div
-            className="group/card relative cursor-pointer rounded-2xl bg-[var(--paper-surface)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#F7F7F8] sm:p-5"
+            className="group/card relative cursor-pointer rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)] p-4 transition-colors hover:bg-[#F7F7F8] sm:p-5"
             onClick={() => router.push(`/listings/${listing.id}`)}
         >
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
@@ -79,7 +82,7 @@ export default function ProjectListingCard({
                             guardAction(() => onUpvote(listing.id))
                         }}
                         aria-label="Upvote"
-                        className={`flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-[8px] border cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40 ${
+                        className={`${actionBtnClass} ${
                             listing.hasUpvoted
                                 ? "border-[#DA5CC7] bg-[var(--paper-accent-soft)] text-[#DA5CC7]"
                                 : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)]"
@@ -88,6 +91,22 @@ export default function ProjectListingCard({
                         <ArrowBigUp className={`h-4 w-4 ${listing.hasUpvoted ? "fill-current" : ""}`} />
                         {showCounts && (
                             <span className="mt-0.5 text-xs font-medium tabular-nums">{listing.upvotes}</span>
+                        )}
+                    </motion.button>
+                    <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/listings/${listing.id}`)
+                        }}
+                        aria-label="Comments"
+                        className={`${actionBtnClass} border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)]`}
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                        {showCounts && (
+                            <span className="mt-0.5 text-xs font-medium tabular-nums">{listing.comments}</span>
                         )}
                     </motion.button>
                 </div>

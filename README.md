@@ -27,3 +27,11 @@ Database:
 ```bash
 bun run db:migrate
 ```
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+Web: http://localhost:3000 · API: http://localhost:4000

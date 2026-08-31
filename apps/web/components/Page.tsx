@@ -2,8 +2,9 @@
 
 import { ArrowBigUp, Layers, Pencil, User } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { motion, useSpring, useTransform } from "motion/react"
+import { motion } from "motion/react"
 import { toast } from "sonner"
 import UploadProject from "./UploadProject"
 import AvatarPicker from "./AvatarPicker"
@@ -43,18 +44,6 @@ const statCards = [
     { key: "upvotes", label: "Upvotes", icon: ArrowBigUp, color: "#3559E9", sub: upvotesSub },
 ] as const
 
-function CountUp({ value }: { value: number }) {
-    // Seed with the mount-time value so cached data skips the count-up
-    const spring = useSpring(value, { stiffness: 90, damping: 22 })
-    const display = useTransform(spring, (v) => Math.round(v).toLocaleString())
-
-    useEffect(() => {
-        spring.set(value)
-    }, [value, spring])
-
-    return <motion.span className="tabular-nums">{display}</motion.span>
-}
-
 function StatCard({ label, icon: Icon, color, sub, value }: {
     label: string
     icon: typeof Layers
@@ -63,7 +52,12 @@ function StatCard({ label, icon: Icon, color, sub, value }: {
     value: number
 }) {
     return (
-        <div className="group relative overflow-hidden rounded-2xl border border-[var(--paper-border)] bg-[var(--paper-surface)] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] sm:p-6">
+        <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="group relative overflow-hidden rounded-2xl border border-[var(--paper-border)] bg-[var(--paper-surface)] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] sm:p-6"
+        >
             <div
                 className="pointer-events-none absolute inset-0"
                 style={{ background: `linear-gradient(135deg, ${color}1A, transparent 55%)` }}
@@ -79,13 +73,13 @@ function StatCard({ label, icon: Icon, color, sub, value }: {
                 >
                     <Icon className="h-4 w-4 text-white" />
                 </div>
-                <p className="mt-4 text-5xl font-semibold tracking-tight text-[var(--paper-ink)]">
-                    <CountUp value={value} />
+                <p className="mt-4 text-5xl font-semibold tracking-tight tabular-nums text-[var(--paper-ink)]">
+                    {value.toLocaleString()}
                 </p>
                 <p className="mt-1.5 text-sm font-semibold" style={{ color }}>{label}</p>
                 <p className="mt-1 text-xs text-[var(--paper-muted)]">{sub}</p>
             </div>
-        </div>
+        </motion.div>
     )
 }
 
@@ -97,6 +91,17 @@ const Page = () => {
     const [editing, setEditing] = useState<Listing | null>(null)
     const [editOpen, setEditOpen] = useState(false)
     const [pickerOpen, setPickerOpen] = useState(false)
+    const router = useRouter()
+
+    // Fallback for an expired or invalid token: the API says logged out
+    useEffect(() => {
+        if (isFetched && !user) {
+            toast.error("Please log in to continue", { id: "auth-notice" })
+            router.replace("/signin")
+        }
+    }, [isFetched, user, router])
+
+    if (isFetched && !user) return null
 
     const listings = data?.listings ?? []
     const stats = computeStats(listings)

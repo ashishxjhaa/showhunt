@@ -28,3 +28,23 @@ export function authMiddleware(
     return res.status(401).json({ error: "Unauthorized" })
   }
 }
+
+/** Attaches req.userId when a valid cookie exists; never blocks the request. */
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token = req.cookies[COOKIE_NAME]
+  if (!token || typeof token !== "string") return next()
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!)
+    if (
+      typeof payload === "object" &&
+      payload !== null &&
+      typeof payload.userId === "string"
+    ) {
+      req.userId = payload.userId
+    }
+  } catch {
+    // Ignore invalid tokens for public routes
+  }
+  next()
+}

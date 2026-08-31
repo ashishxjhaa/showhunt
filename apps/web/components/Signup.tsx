@@ -3,11 +3,13 @@
 import { toast } from "sonner";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import AuthShell from "./AuthShell";
 import AuthCard, { AuthCardLink } from "./AuthCard";
 import AuthForm, { type AuthField } from "./AuthForm";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { api, apiErrorMessage } from "@/lib/api";
+import { queryKeys } from "@/lib/queries/keys";
 
 const fields: AuthField[] = [
   { key: "fullName", label: "Full name", type: "text", placeholder: "Ashish Jha" },
@@ -18,6 +20,7 @@ const fields: AuthField[] = [
 export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (values: Record<string, string>) => {
     if (!values.fullName || !values.email || !values.password) {
@@ -33,8 +36,10 @@ export default function SignUp() {
     setLoading(true);
     try {
       const response = await api.post("/api/v1/auth/signup", values);
-      toast.success("Signup successful 🎉");
       if (response.status === 201) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.me });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.listings });
+        toast.success("Signup successful 🎉");
         router.push("/listings");
       }
     } catch (err) {

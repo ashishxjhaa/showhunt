@@ -9,17 +9,28 @@ export interface Listing {
     repoUrl: string | null
     tags: string[]
     upvotes: number
+    comments: number
     hasUpvoted: boolean
     links: { platform: string; url: string }[]
     user: { fullName: string }
     createdAt?: string | Date
 }
 
+export interface ListingComment {
+    id: string
+    content: string
+    createdAt: string | Date
+    user: {
+        id: string
+        fullName: string
+        email: string
+        avatarUrl: string | null
+    }
+}
+
 export interface EnrichedMetadata {
     name: string
     description: string
-    tags: string[]
-    logoUrl: string | null
 }
 
 export interface ListingInput {

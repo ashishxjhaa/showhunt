@@ -3,11 +3,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ArrowUpRight, Compass, LogOutIcon, Menu, User, X } from "lucide-react"
 import { useMe } from "@/lib/queries/hooks"
-import { api } from "@/lib/api"
+import { useLogout } from "@/lib/queries/mutations"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
@@ -38,13 +38,14 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
   const [mobileOpen, setMobileOpen] = useState(false)
   const { data: user, isFetched } = useMe()
   const pathname = usePathname()
+  const router = useRouter()
+  const logout = useLogout()
 
   const handleLogout = () => {
     toast.success("Logged out")
-    // Fire-and-forget signout, then hard-navigate to reset all client auth state
-    api.post("/api/v1/auth/signout").catch(() => {})
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.assign("/")
+    logout.mutate(undefined, {
+      onSettled: () => router.push("/"),
+    })
   }
 
   return (
@@ -77,7 +78,14 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
             <Link
               key={link.href}
               href={link.href}
-              onClick={playClickSound}
+              onClick={(e) => {
+                playClickSound()
+                if (link.href === "/profile" && isFetched && !user) {
+                  e.preventDefault()
+                  toast.error("Please log in to continue", { id: "auth-notice" })
+                  router.push("/signin")
+                }
+              }}
               className={cn(
                 "group relative mx-4 flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40",
                 pathname === link.href
@@ -174,9 +182,14 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
                       ? "bg-[var(--paper-accent-soft)] text-[var(--paper-ink)]"
                       : "text-[var(--paper-muted)]"
                   )}
-                  onClick={() => {
+                  onClick={(e) => {
                     playClickSound()
                     setMobileOpen(false)
+                    if (link.href === "/profile" && isFetched && !user) {
+                      e.preventDefault()
+                      toast.error("Please log in to continue", { id: "auth-notice" })
+                      router.push("/signin")
+                    }
                   }}
                 >
                   <link.icon size={16} strokeWidth={2} />

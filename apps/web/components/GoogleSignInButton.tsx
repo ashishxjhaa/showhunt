@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Script from 'next/script'
+import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api, apiErrorMessage } from '@/lib/api'
+import { queryKeys } from '@/lib/queries/keys'
 
 declare global {
   interface Window {
@@ -25,6 +28,8 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 export default function GoogleSignInButton() {
   const buttonRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const queryClient = useQueryClient()
   const [googleReady, setGoogleReady] = useState(
     () => typeof window !== 'undefined' && Boolean(window.google?.accounts?.id)
   )
@@ -54,10 +59,10 @@ export default function GoogleSignInButton() {
       callback: async (response) => {
         try {
           await api.post('/api/v1/auth/google', { credential: response.credential })
+          await queryClient.invalidateQueries({ queryKey: queryKeys.me })
+          await queryClient.invalidateQueries({ queryKey: queryKeys.listings })
           toast.success('Signed in with Google 🎉')
-          // Hard reload so cached logged-out state is fully reset
-          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-          window.location.assign('/listings')
+          router.push('/listings')
         } catch (err) {
           toast.error(apiErrorMessage(err, 'Google sign-in failed'))
         }
@@ -71,7 +76,7 @@ export default function GoogleSignInButton() {
       text: 'continue_with',
       width: Math.min(400, Math.max(buttonRef.current.offsetWidth, 200)),
     })
-  }, [googleReady])
+  }, [googleReady, queryClient, router])
 
   if (!CLIENT_ID) return null
 

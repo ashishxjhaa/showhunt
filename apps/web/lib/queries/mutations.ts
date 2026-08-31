@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
-import type { ListingsResponse, ListingInput, EnrichedMetadata, User } from './types'
+import type { ListingsResponse, ListingInput, EnrichedMetadata, User, Listing, ListingComment } from './types'
 
 type ListingListKey = readonly unknown[]
 
@@ -62,6 +62,41 @@ function useOptimisticUpvote(
 export function useListingsMutations(activeKey?: ListingListKey) {
     const upvote = useOptimisticUpvote(activeKey ?? queryKeys.listings)
     return { upvote }
+}
+
+export function useListingUpvote(listingId: string) {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async () => {
+            const res = await api.post<{ upvoted: boolean }>(
+                `/api/v1/listings/${listingId}/upvote`
+            )
+            return res.data
+        },
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: queryKeys.listing(listingId) })
+            const previous = queryClient.getQueryData<Listing>(queryKeys.listing(listingId))
+            if (previous) {
+                queryClient.setQueryData<Listing>(queryKeys.listing(listingId), {
+                    ...previous,
+                    hasUpvoted: !previous.hasUpvoted,
+                    upvotes: previous.upvotes + (previous.hasUpvoted ? -1 : 1),
+                })
+            }
+            return { previous }
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) {
+                queryClient.setQueryData(queryKeys.listing(listingId), context.previous)
+            }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.listing(listingId) })
+            queryClient.invalidateQueries({ queryKey: queryKeys.listings })
+            queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+        },
+    })
 }
 
 export function useUploadListing() {
@@ -144,6 +179,31 @@ export function useUpdateAvatar() {
     })
 }
 
+export function useCreateComment(listingId: string) {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async (content: string) => {
+            const res = await api.post<{ comment: ListingComment }>(
+                `/api/v1/listings/${listingId}/comments`,
+                { content }
+            )
+            return res.data.comment
+        },
+        onSuccess: (comment) => {
+            queryClient.setQueryData<ListingComment[]>(
+                queryKeys.comments(listingId),
+                (prev) => (prev ? [comment, ...prev] : [comment])
+            )
+            queryClient.setQueryData<Listing>(queryKeys.listing(listingId), (prev) =>
+                prev ? { ...prev, comments: prev.comments + 1 } : prev
+            )
+            queryClient.invalidateQueries({ queryKey: queryKeys.listings })
+            queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+        },
+    })
+}
+
 export function useLogout() {
     const queryClient = useQueryClient()
 
@@ -154,6 +214,7 @@ export function useLogout() {
         onSuccess: () => {
             queryClient.removeQueries({ queryKey: queryKeys.me })
             queryClient.removeQueries({ queryKey: queryKeys.myListings })
+            queryClient.invalidateQueries({ queryKey: queryKeys.listings })
         },
     })
 }
