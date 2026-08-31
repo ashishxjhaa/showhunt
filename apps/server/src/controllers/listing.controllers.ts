@@ -49,7 +49,16 @@ const listingInclude = {
 
 
 export async function getListings(req: Request, res: Response) {
-  const { tag, q } = req.query as { tag?: string; q?: string }
+  const { tag, q, page: pageRaw, limit: limitRaw } = req.query as {
+    tag?: string
+    q?: string
+    page?: string
+    limit?: string
+  }
+
+  const page = Math.max(1, Number.parseInt(pageRaw ?? "1", 10) || 1)
+  const limit = Math.min(50, Math.max(1, Number.parseInt(limitRaw ?? "10", 10) || 10))
+  const skip = (page - 1) * limit
 
   const where: Prisma.ListingWhereInput = {}
   if (tag) {
@@ -63,13 +72,75 @@ export async function getListings(req: Request, res: Response) {
     ]
   }
 
-  const listings = await prisma.listing.findMany({
-    where,
+  const isFiltered = !!tag || !!search
+  const orderBy: Prisma.ListingOrderByWithRelationInput[] = isFiltered
+    ? [{ createdAt: "desc" }]
+    : [{ upvoteCount: "desc" }, { createdAt: "desc" }]
+
+  const [listings, total] = await prisma.$transaction([
+    prisma.listing.findMany({
+      where,
+      include: listingInclude,
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    prisma.listing.count({ where }),
+  ])
+
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+
+  res.json({
+    listings: listings.map(serializeListing),
+    total,
+    page,
+    limit,
+    totalPages,
+  })
+}
+
+export async function getSimilarListings(req: Request, res: Response) {
+  const listingId = req.params.id as string
+
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    select: { id: true, tags: true },
+  })
+  if (!listing) {
+    throw new AppError("Listing not found", 404)
+  }
+
+  if (listing.tags.length === 0) {
+    res.json({ listings: [] })
+    return
+  }
+
+  const candidates = await prisma.listing.findMany({
+    where: {
+      id: { not: listingId },
+      tags: { hasSome: listing.tags },
+    },
     include: listingInclude,
-    orderBy: { createdAt: "desc" },
+    take: 24,
   })
 
-  res.json({ listings: listings.map(serializeListing) })
+  const tagSet = new Set(listing.tags)
+  const ranked = candidates
+    .map((candidate) => ({
+      candidate,
+      overlap: candidate.tags.filter((t) => tagSet.has(t)).length,
+    }))
+    .sort((a, b) => {
+      if (a.overlap !== b.overlap) return b.overlap - a.overlap
+      if (a.candidate.upvoteCount !== b.candidate.upvoteCount) {
+        return b.candidate.upvoteCount - a.candidate.upvoteCount
+      }
+      return b.candidate.createdAt.getTime() - a.candidate.createdAt.getTime()
+    })
+    .slice(0, 4)
+    .map(({ candidate }) => serializeListing(candidate))
+
+  res.json({ listings: ranked })
 }
 
 export async function getMyListings(req: Request, res: Response) {
@@ -215,7 +286,6 @@ export async function updateListing(req: Request, res: Response) {
 
   res.json({ listing: updated ? serializeListing(updated) : null })
 }
-
 
 export async function deleteListing(req: Request, res: Response) {
   const listingId = req.params.id as string

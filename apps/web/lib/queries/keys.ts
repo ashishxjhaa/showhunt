@@ -10,8 +10,16 @@ export const queryKeys = {
 export interface ListingsFilters {
     tag?: string | null
     q?: string
+    page?: number
 }
 
 export function listingsKey(filters?: ListingsFilters) {
-    return ['listings', { tag: filters?.tag ?? null, q: filters?.q ?? '' }] as const
+    return [
+        'listings',
+        {
+            tag: filters?.tag ?? null,
+            q: filters?.q ?? '',
+            page: filters?.page ?? 1,
+        },
+    ] as const
 }

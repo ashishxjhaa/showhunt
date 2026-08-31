@@ -5,6 +5,7 @@ interface AppShellProps {
   search?: string
   onSearchChange?: (value: string) => void
   showSearch?: boolean
+  showNavbar?: boolean
 }
 
 export default function AppShell({
@@ -12,16 +13,25 @@ export default function AppShell({
   search,
   onSearchChange,
   showSearch = false,
+  showNavbar = true,
 }: AppShellProps) {
   return (
     <>
-      <AppNavbar
-        search={search}
-        onSearchChange={onSearchChange}
-        showSearch={showSearch}
-      />
+      {showNavbar && (
+        <AppNavbar
+          search={search}
+          onSearchChange={onSearchChange}
+          showSearch={showSearch}
+        />
+      )}
       <div className="paper-page light min-h-screen w-full">
-        <main className="mx-auto w-full max-w-6xl pt-[4.75rem] sm:pt-[5.5rem]">
+        <main
+          className={
+            showNavbar
+              ? "mx-auto w-full max-w-6xl pt-[4.75rem] sm:pt-[5.5rem]"
+              : "mx-auto w-full max-w-6xl"
+          }
+        >
           {children}
         </main>
       </div>

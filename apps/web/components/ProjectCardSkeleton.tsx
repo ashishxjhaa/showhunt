@@ -17,7 +17,7 @@ const CardBodySkeleton = () => (
 
 export const ProjectCardSkeleton = () => {
     return (
-        <div className="rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)] p-4 sm:p-5">
+        <div className="rounded-[8px] bg-[var(--paper-surface)] p-4 sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                 <div className="flex flex-1 gap-3 sm:gap-4">
                     <CardBodySkeleton />

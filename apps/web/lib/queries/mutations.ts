@@ -37,10 +37,14 @@ function useOptimisticUpvote(
 
             if (queryKey === queryKeys.listings) {
                 queryClient.setQueryData<ListingsResponse>(queryKey, {
+                    ...previous,
                     listings: sortByTrending(listings),
                 })
             } else {
-                queryClient.setQueryData<ListingsResponse>(queryKey, { listings })
+                queryClient.setQueryData<ListingsResponse>(queryKey, {
+                    ...previous,
+                    listings,
+                })
             }
 
             return { previous }
@@ -139,6 +143,7 @@ export function useDeleteListing() {
             const previous = queryClient.getQueryData<ListingsResponse>(queryKeys.myListings)
             if (previous) {
                 queryClient.setQueryData<ListingsResponse>(queryKeys.myListings, {
+                    ...previous,
                     listings: previous.listings.filter((l) => l.id !== listingId),
                 })
             }

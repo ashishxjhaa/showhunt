@@ -55,4 +55,8 @@ export interface User {
 
 export interface ListingsResponse {
     listings: Listing[]
+    total?: number
+    page?: number
+    limit?: number
+    totalPages?: number
 }

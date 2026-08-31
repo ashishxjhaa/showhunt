@@ -6,19 +6,47 @@ import { useRouter } from "next/navigation"
 import { useListings, useTags } from "@/lib/queries/hooks"
 import { useListingsMutations } from "@/lib/queries/mutations"
 import { listingsKey } from "@/lib/queries/keys"
-import { sortByTrending } from "@/lib/ranking"
 import { cn } from "@/lib/utils"
 import { ProjectCardSkeleton } from "./ProjectCardSkeleton"
 import ProjectListingCard from "./ProjectListingCard"
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface ListingsPageProps {
     searchQuery: string
     isAuthenticated: boolean
 }
 
+function buildPageItems(current: number, total: number): (number | "ellipsis")[] {
+    if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1)
+    }
+
+    const items: (number | "ellipsis")[] = [1]
+
+    if (current > 3) items.push("ellipsis")
+
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+    for (let p = start; p <= end; p++) items.push(p)
+
+    if (current < total - 2) items.push("ellipsis")
+
+    items.push(total)
+    return items
+}
+
 const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     const router = useRouter()
     const [activeTag, setActiveTag] = useState<string | null>(null)
+    const [page, setPage] = useState(1)
     const [debouncedQuery, setDebouncedQuery] = useState(searchQuery)
 
     useEffect(() => {
@@ -26,19 +54,21 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
         return () => clearTimeout(timer)
     }, [searchQuery])
 
+    useEffect(() => {
+        setPage(1)
+    }, [activeTag, debouncedQuery])
+
     const filters = useMemo(
-        () => ({ tag: activeTag, q: debouncedQuery }),
-        [activeTag, debouncedQuery]
+        () => ({ tag: activeTag, q: debouncedQuery, page }),
+        [activeTag, debouncedQuery, page]
     )
     const { data, isLoading } = useListings(filters)
     const { upvote } = useListingsMutations(listingsKey(filters))
     const { data: curatedTags } = useTags()
 
+    const visibleListings = data?.listings ?? []
+    const totalPages = data?.totalPages ?? 1
     const isFiltered = !!activeTag || !!debouncedQuery.trim()
-    const visibleListings = useMemo(() => {
-        const listings = data?.listings ?? []
-        return isFiltered ? listings : sortByTrending(listings)
-    }, [data, isFiltered])
 
     const handleRequireAuth = () => {
         toast.error("Please log in to upvote listings")
@@ -72,17 +102,77 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
                     ))}
                 </div>
             ) : visibleListings.length > 0 ? (
-                <div className="grid gap-3">
-                    {visibleListings.map((l) => (
-                        <ProjectListingCard
-                            key={l.id}
-                            listing={l}
-                            isAuthenticated={isAuthenticated}
-                            onUpvote={(id) => upvote.mutate(id)}
-                            onRequireAuth={handleRequireAuth}
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="grid gap-3">
+                        {visibleListings.map((l) => (
+                            <ProjectListingCard
+                                key={l.id}
+                                listing={l}
+                                isAuthenticated={isAuthenticated}
+                                onUpvote={(id) => upvote.mutate(id)}
+                                onRequireAuth={handleRequireAuth}
+                            />
+                        ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                        <Pagination className="mt-8">
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        href="#"
+                                        className={cn(
+                                            page <= 1 && "pointer-events-none opacity-50"
+                                        )}
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            if (page > 1) setPage(page - 1)
+                                        }}
+                                    />
+                                </PaginationItem>
+
+                                {buildPageItems(page, totalPages).map((item, idx) =>
+                                    item === "ellipsis" ? (
+                                        <PaginationItem key={`ellipsis-${idx}`}>
+                                            <PaginationEllipsis />
+                                        </PaginationItem>
+                                    ) : (
+                                        <PaginationItem key={item}>
+                                            <PaginationLink
+                                                href="#"
+                                                isActive={item === page}
+                                                className={cn(
+                                                    item === page &&
+                                                        "border-[var(--paper-border)]"
+                                                )}
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    setPage(item)
+                                                }}
+                                            >
+                                                {item}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    )
+                                )}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        href="#"
+                                        className={cn(
+                                            page >= totalPages &&
+                                                "pointer-events-none opacity-50"
+                                        )}
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            if (page < totalPages) setPage(page + 1)
+                                        }}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    )}
+                </>
             ) : isFiltered ? (
                 <p className="text-center text-[var(--paper-muted)]">
                     No listings match your search.

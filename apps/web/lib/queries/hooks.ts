@@ -8,6 +8,9 @@ export function useListings(filters?: ListingsFilters) {
     if (filters?.tag) params.set('tag', filters.tag)
     const q = filters?.q?.trim()
     if (q) params.set('q', q)
+    const page = filters?.page ?? 1
+    params.set('page', String(page))
+    params.set('limit', '10')
     const qs = params.toString()
 
     return useQuery({
@@ -28,6 +31,19 @@ export function useListing(id: string | undefined) {
         queryFn: async () => {
             const res = await api.get<{ listing: Listing }>(`/api/v1/listings/${id}`)
             return res.data.listing
+        },
+    })
+}
+
+export function useSimilarListings(id: string | undefined) {
+    return useQuery({
+        queryKey: [...queryKeys.listing(id ?? ''), 'similar'] as const,
+        enabled: !!id,
+        queryFn: async () => {
+            const res = await api.get<{ listings: Listing[] }>(
+                `/api/v1/listings/${id}/similar`
+            )
+            return res.data.listings
         },
     })
 }

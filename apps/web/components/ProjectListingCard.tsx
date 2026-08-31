@@ -38,12 +38,12 @@ export default function ProjectListingCard({
 
     return (
         <div
-            className="group/card relative cursor-pointer rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)] p-4 transition-colors hover:bg-[#F7F7F8] sm:p-5"
+            className="group/card relative cursor-pointer rounded-[8px] bg-[var(--paper-surface)] p-4 transition-colors hover:bg-[#F7F7F8] sm:p-5"
             onClick={() => router.push(`/listings/${listing.id}`)}
         >
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                 <div className="flex flex-1 gap-3 sm:gap-4">
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--paper-border)]">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
                         <Image
                             src={listing.logoUrl}
                             alt={listing.name}

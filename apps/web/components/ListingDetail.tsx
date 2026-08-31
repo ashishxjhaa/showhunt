@@ -21,10 +21,12 @@ import {
 import { motion, AnimatePresence } from "motion/react"
 import AppShell from "@/components/AppShell"
 import ListingDetailSkeleton from "@/components/ListingDetailSkeleton"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { apiErrorMessage } from "@/lib/api"
 import { authFieldClass } from "@/lib/auth-field"
 import { resolveAvatarSrc } from "@/lib/avatars"
-import { useComments, useListing, useMe } from "@/lib/queries/hooks"
+import { useComments, useListing, useMe, useSimilarListings } from "@/lib/queries/hooks"
 import { useCreateComment, useListingUpvote } from "@/lib/queries/mutations"
 import type { Listing, ListingComment } from "@/lib/queries/types"
 import { cn } from "@/lib/utils"
@@ -302,6 +304,7 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
     const router = useRouter()
     const { data: user } = useMe()
     const { data: comments, isLoading: commentsLoading } = useComments(listing.id)
+    const { data: similar, isLoading: similarLoading } = useSimilarListings(listing.id)
     const upvote = useListingUpvote(listing.id)
 
     const requireAuth = (message: string) => {
@@ -319,14 +322,16 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
 
     return (
         <div className="px-5 pb-12 pt-4 sm:px-8 sm:pt-5">
-            <button
+            <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => router.push("/listings")}
-                className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--paper-muted)] transition-colors hover:text-[var(--paper-ink)]"
+                className="cursor-pointer rounded-[8px]"
             >
-                <ArrowLeft size={16} />
+                <ArrowLeft />
                 Back to listings
-            </button>
+            </Button>
 
             {/* Hero */}
             <motion.section
@@ -337,7 +342,7 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
             >
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex min-w-0 gap-4">
-                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-[var(--paper-border)] sm:h-20 sm:w-20">
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl sm:h-20 sm:w-20">
                             <Image
                                 src={listing.logoUrl}
                                 alt={listing.name}
@@ -538,6 +543,56 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
                             </div>
                         </section>
                     )}
+
+                    {(similarLoading || (similar && similar.length > 0)) && (
+                        <section
+                            className="rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)] p-5"
+                        >
+                            <h2 className="text-sm font-semibold uppercase tracking-wide text-[#DA5CC7]">
+                                Similar
+                            </h2>
+                            <div className="mt-3 space-y-2">
+                                {similarLoading
+                                    ? [...Array(3)].map((_, i) => (
+                                          <div key={i} className="flex items-center gap-3 px-1 py-1.5">
+                                              <Skeleton className="h-9 w-9 shrink-0 rounded-lg" />
+                                              <div className="min-w-0 flex-1 space-y-1.5">
+                                                  <Skeleton className="h-3.5 w-3/4" />
+                                                  <Skeleton className="h-3 w-1/3" />
+                                              </div>
+                                          </div>
+                                      ))
+                                    : similar?.map((item) => (
+                                          <button
+                                              key={item.id}
+                                              type="button"
+                                              onClick={() => router.push(`/listings/${item.id}`)}
+                                              className="flex w-full cursor-pointer items-center gap-3 rounded-[8px] px-1 py-1.5 text-left transition-colors hover:bg-[var(--paper-accent-soft)]"
+                                          >
+                                              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg">
+                                                  <Image
+                                                      src={item.logoUrl}
+                                                      alt={item.name}
+                                                      fill
+                                                      className="object-cover"
+                                                      sizes="36px"
+                                                  />
+                                              </div>
+                                              <div className="min-w-0 flex-1">
+                                                  <p className="truncate text-sm font-medium text-[var(--paper-ink)]">
+                                                      {item.name}
+                                                  </p>
+                                                  {item.tags[0] && (
+                                                      <p className="mt-0.5 truncate text-xs text-[var(--paper-muted)]">
+                                                          {item.tags[0]}
+                                                      </p>
+                                                  )}
+                                              </div>
+                                          </button>
+                                      ))}
+                            </div>
+                        </section>
+                    )}
                 </aside>
             </div>
         </div>
@@ -551,20 +606,22 @@ export default function ListingDetail() {
     const { data: listing, isLoading, isError } = useListing(id)
 
     return (
-        <AppShell>
+        <AppShell showNavbar={false}>
             {isLoading ? (
                 <ListingDetailSkeleton />
             ) : isError || !listing ? (
                 <div className="px-5 pb-10 pt-4 sm:px-8 sm:pt-5">
                     <p className="text-sm text-[var(--paper-muted)]">Listing not found.</p>
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => router.push("/listings")}
-                        className="mt-4 inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-[#DA5CC7] transition-colors hover:text-[#C431AE]"
+                        className="mt-4 cursor-pointer rounded-[8px]"
                     >
-                        <ArrowLeft size={16} />
+                        <ArrowLeft />
                         Back to listings
-                    </button>
+                    </Button>
                 </div>
             ) : (
                 <ListingDetailContent listing={listing} />
