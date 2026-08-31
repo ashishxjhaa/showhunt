@@ -1,14 +1,13 @@
 'use client'
 
 import { ArrowBigUp, Layers, Pencil, User } from "lucide-react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { motion } from "motion/react"
 import { toast } from "sonner"
 import UploadProject from "./UploadProject"
 import AvatarPicker from "./AvatarPicker"
-import { resolveAvatarSrc } from "@/lib/avatars"
+import UserAvatar from "./UserAvatar"
 import { useMe, useMyListings } from "@/lib/queries/hooks"
 import { useDeleteListing, useUpdateAvatar } from "@/lib/queries/mutations"
 import { MyListingCardSkeleton } from "./ProjectCardSkeleton"
@@ -107,7 +106,6 @@ const Page = () => {
     const stats = computeStats(listings)
 
     const avatarSeed = user?.email ?? user?.fullName ?? "showhunt"
-    const avatarSrc = resolveAvatarSrc(user?.avatarUrl, avatarSeed)
     const formattedDate = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -120,14 +118,13 @@ const Page = () => {
     <div>
         <div className="flex flex-col items-start gap-6 p-5 sm:flex-row sm:items-center sm:gap-10 sm:p-8">
             <div className="relative shrink-0">
-                <div className="relative h-24 w-24 overflow-hidden rounded-full bg-[var(--paper-surface)] ring-2 ring-[var(--paper-border)]">
+                <div className="relative h-24 w-24 overflow-hidden rounded-full bg-[var(--paper-surface)]">
                     {isFetched ? (
-                        <Image
-                            src={avatarSrc}
+                        <UserAvatar
+                            avatarUrl={user?.avatarUrl}
+                            seed={avatarSeed}
+                            size={96}
                             alt={user?.fullName ? `${user.fullName} avatar` : "Avatar"}
-                            width={96}
-                            height={96}
-                            className="h-full w-full object-cover"
                         />
                     ) : (
                         <div className="h-full w-full animate-pulse bg-black/5" aria-hidden="true" />
@@ -138,7 +135,7 @@ const Page = () => {
                     onClick={() => setPickerOpen(true)}
                     aria-label="Change avatar"
                     title="Change avatar"
-                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--paper-border)] bg-white text-[var(--paper-muted)] shadow-sm transition-colors hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)] hover:text-[#DA5CC7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white text-[var(--paper-muted)] shadow-sm transition-colors hover:bg-[var(--paper-accent-soft)] hover:text-[#DA5CC7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
                 >
                     <Pencil size={14} />
                 </button>

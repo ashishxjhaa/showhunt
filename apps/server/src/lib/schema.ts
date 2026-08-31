@@ -82,9 +82,45 @@ export const presignSchema = z.object({
   fileSize: z.number().int().positive("File size is required"),
 })
 
+export const AVATAR_SEEDS = [
+  "ember",
+  "volt",
+  "neon",
+  "pulse",
+  "spark",
+  "flare",
+  "bolt",
+  "prism",
+  "flux",
+  "glow",
+  "arc",
+  "beam",
+  "nova",
+  "ion",
+  "quark",
+  "plasma",
+  "zenith",
+  "orbit",
+  "comet",
+  "radar",
+] as const
+
 export const updateAvatarSchema = z.object({
-  avatarUrl: z.string().regex(/^\/avatars\/avatar-\d{2}\.jpg$/, "Invalid avatar").max(512),
+  avatarUrl: z
+    .string()
+    .regex(
+      /^gaze:(ember|volt|neon|pulse|spark|flare|bolt|prism|flux|glow|arc|beam|nova|ion|quark|plasma|zenith|orbit|comet|radar)$/,
+      "Invalid avatar"
+    )
+    .max(64),
 })
+
+/** Deterministic default Gaze avatar id for a new user. */
+export function defaultAvatarIdFor(seed: string): string {
+  let hash = 0
+  for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
+  return `gaze:${AVATAR_SEEDS[hash % AVATAR_SEEDS.length]}`
+}
 
 export const createCommentSchema = z.object({
   content: z.string().trim().min(1, "Comment cannot be empty").max(500, "Comment is too long"),

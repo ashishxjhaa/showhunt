@@ -23,9 +23,9 @@ import AppShell from "@/components/AppShell"
 import ListingDetailSkeleton from "@/components/ListingDetailSkeleton"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import UserAvatar from "@/components/UserAvatar"
 import { apiErrorMessage } from "@/lib/api"
 import { authFieldClass } from "@/lib/auth-field"
-import { resolveAvatarSrc } from "@/lib/avatars"
 import { useComments, useListing, useMe, useSimilarListings } from "@/lib/queries/hooks"
 import { useCreateComment, useListingUpvote } from "@/lib/queries/mutations"
 import type { Listing, ListingComment } from "@/lib/queries/types"
@@ -223,14 +223,13 @@ function CommentComposer({
 
     return (
         <form onSubmit={submit} className="flex gap-3">
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--paper-border)] bg-[#F3F3F5]">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#F3F3F5]">
                 {user ? (
-                    <Image
-                        src={resolveAvatarSrc(user.avatarUrl, user.email)}
+                    <UserAvatar
+                        avatarUrl={user.avatarUrl}
+                        seed={user.email}
+                        size={40}
                         alt=""
-                        fill
-                        className="object-cover"
-                        sizes="40px"
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center text-[var(--paper-muted)]">
@@ -274,11 +273,15 @@ function CommentComposer({
 }
 
 function CommentItem({ comment }: { comment: ListingComment }) {
-    const avatar = resolveAvatarSrc(comment.user.avatarUrl, comment.user.id)
     return (
         <article className="flex gap-3">
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[var(--paper-border)]">
-                <Image src={avatar} alt="" fill className="object-cover" sizes="40px" />
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                <UserAvatar
+                    avatarUrl={comment.user.avatarUrl}
+                    seed={comment.user.id}
+                    size={40}
+                    alt=""
+                />
             </div>
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">

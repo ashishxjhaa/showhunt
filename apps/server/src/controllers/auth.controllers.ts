@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma"
 import { createToken, setAuthCookie, clearAuthCookie } from "../lib/auth"
 import { verifyGoogleIdToken } from "../lib/google"
 import { AppError } from "../lib/errors"
+import { defaultAvatarIdFor } from "../lib/schema"
 
 const USER_SELECT = {
   id: true,
@@ -23,7 +24,12 @@ export async function signup(req: Request, res: Response) {
 
   const hashed = await bcrypt.hash(password, 10)
   const user = await prisma.user.create({
-    data: { fullName, email, password: hashed },
+    data: {
+      fullName,
+      email,
+      password: hashed,
+      avatarUrl: defaultAvatarIdFor(email),
+    },
     select: USER_SELECT,
   })
 
@@ -67,13 +73,21 @@ export async function google(req: Request, res: Response) {
     // Link an existing email account, otherwise create a new user.
     user = await prisma.user.upsert({
       where: { email: profile.email },
-      update: { googleId: profile.googleId, avatarUrl: profile.picture },
+      update: { googleId: profile.googleId },
       create: {
         fullName: profile.name,
         email: profile.email,
         googleId: profile.googleId,
-        avatarUrl: profile.picture,
+        avatarUrl: defaultAvatarIdFor(profile.email),
       },
+    })
+  }
+
+  // Backfill Gaze avatar for older accounts that never picked one.
+  if (!user.avatarUrl?.startsWith("gaze:")) {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: defaultAvatarIdFor(user.email) },
     })
   }
 
@@ -95,13 +109,23 @@ export async function signout(_req: Request, res: Response) {
 }
 
 export async function me(req: Request, res: Response) {
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: req.userId },
     select: USER_SELECT,
   })
   if (!user) {
     throw new AppError("User not found", 404)
   }
+
+  // Ensure every profile has a Gaze avatar assigned.
+  if (!user.avatarUrl?.startsWith("gaze:")) {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: defaultAvatarIdFor(user.email) },
+      select: USER_SELECT,
+    })
+  }
+
   res.json({ user })
 }
 
