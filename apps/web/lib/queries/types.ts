@@ -53,6 +53,12 @@ export interface User {
     createdAt: string
 }
 
+export interface ActivityDay {
+    date: string
+    listings: number
+    upvotes: number
+}
+
 export interface ListingsResponse {
     listings: Listing[]
     total?: number

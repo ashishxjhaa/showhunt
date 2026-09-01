@@ -3,10 +3,19 @@
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { createPortal } from "react-dom"
 import { ArrowBigUp, CalendarDays, Github, Pencil, SquareArrowOutUpRight, Trash2, TriangleAlert } from "lucide-react"
-import { authFieldClass } from "@/lib/auth-field"
-import { useModalBehavior } from "@/lib/use-modal"
+import {
+    Dialog,
+    DialogCancel,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { isListingNavSuppressed, suppressListingNav } from "@/lib/suppress-listing-nav"
 import type { Listing } from "@/lib/queries/types"
 
 interface MyListingCardProps {
@@ -22,15 +31,29 @@ const actionButtonClass =
 export default function MyListingCard({ listing, onEdit, onDelete, deleting }: MyListingCardProps) {
     const router = useRouter()
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [confirmText, setConfirmText] = useState("")
 
     const createdLabel = listing.createdAt
         ? new Date(listing.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
         : null
 
+    const matches = confirmText.trim() === listing.name
+
+    const handleOpenChange = (open: boolean) => {
+        setDeleteOpen(open)
+        if (!open) {
+            setConfirmText("")
+            suppressListingNav()
+        }
+    }
+
     return (
         <div
-            className="group/card relative cursor-pointer overflow-hidden rounded-2xl bg-[var(--paper-surface)] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#F7F7F8]"
-            onClick={() => router.push(`/listings/${listing.id}`)}
+            className="group/card relative cursor-pointer overflow-hidden rounded-2xl border border-[var(--paper-border)] bg-[var(--paper-surface)] transition-colors hover:bg-[#F7F7F8]"
+            onClick={() => {
+                if (isListingNavSuppressed()) return
+                router.push(`/listings/${listing.id}`)
+            }}
         >
             <div className="flex gap-3 p-4 sm:gap-4 sm:p-5">
                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--paper-border)]">
@@ -49,9 +72,9 @@ export default function MyListingCard({ listing, onEdit, onDelete, deleting }: M
                             <SquareArrowOutUpRight className="h-4 w-4 opacity-0 transition-opacity group-hover/card:opacity-100" />
                         </h3>
                         {listing.isOpenSource && (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--paper-border)] px-2 py-0.5 text-[11px] font-medium text-[var(--paper-muted)]">
+                            <span className="inline-flex items-center gap-1 rounded-[8px] border border-[#1CB061]/30 bg-[#1CB061]/10 px-2.5 py-1 text-xs font-medium text-[#1CB061]">
                                 <Github className="h-3 w-3" />
-                                Open Source
+                                Open source
                             </span>
                         )}
                     </div>
@@ -105,98 +128,57 @@ export default function MyListingCard({ listing, onEdit, onDelete, deleting }: M
                 </div>
             </div>
 
-            <DeleteListingModal
-                open={deleteOpen}
-                listingName={listing.name}
-                deleting={deleting ?? false}
-                onConfirm={() => onDelete(listing.id)}
-                onClose={() => setDeleteOpen(false)}
-            />
-        </div>
-    )
-}
+            <Dialog open={deleteOpen} onOpenChange={handleOpenChange}>
+                <DialogContent onClick={(e) => e.stopPropagation()}>
+                    <DialogHeader>
+                        <DialogTitle>Delete project</DialogTitle>
+                        <DialogDescription>
+                            This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
 
-interface DeleteListingModalProps {
-    open: boolean
-    listingName: string
-    deleting: boolean
-    onConfirm: () => void
-    onClose: () => void
-}
-
-function DeleteListingModal({ open, listingName, deleting, onConfirm, onClose }: DeleteListingModalProps) {
-    const [confirmText, setConfirmText] = useState("")
-    const handleClose = () => {
-        setConfirmText("")
-        onClose()
-    }
-    useModalBehavior(open, handleClose)
-
-    if (!open) return null
-
-    const matches = confirmText.trim() === listingName
-
-    return createPortal(
-        <div
-            className="fixed inset-0 z-[250] flex items-center justify-center bg-black/25 p-4 backdrop-blur-sm"
-            onClick={handleClose}
-        >
-            <div
-                className="auth-card w-full max-w-md"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="auth-card-header">
-                    <h3 className="text-lg font-semibold text-[var(--paper-ink)]">Delete project</h3>
-                    <p className="mt-1 text-sm text-[var(--paper-muted)]">
-                        This action cannot be undone.
-                    </p>
-                </div>
-
-                <div className="auth-card-body flex flex-col gap-4">
                     <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
                         <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                         <span>
-                            This will permanently delete <span className="font-semibold">{listingName}</span>, its media, links, and all votes.
+                            This will permanently delete{" "}
+                            <span className="font-semibold">{listing.name}</span>, its media,
+                            links, and all votes.
                         </span>
                     </div>
 
                     <div className="flex flex-col gap-1.5">
                         <label htmlFor="delete-confirm" className="text-sm text-[var(--paper-muted)]">
-                            Type <span className="font-semibold text-[var(--paper-ink)]">{listingName}</span> to confirm
+                            Type{" "}
+                            <span className="font-semibold text-[var(--paper-ink)]">
+                                {listing.name}
+                            </span>{" "}
+                            to confirm
                         </label>
-                        <input
+                        <Input
                             id="delete-confirm"
                             type="text"
                             value={confirmText}
                             onChange={(e) => setConfirmText(e.target.value)}
-                            placeholder={listingName}
-                            autoFocus
+                            placeholder={listing.name}
                             autoComplete="off"
                             spellCheck={false}
-                            className={authFieldClass}
+                            className="h-10 border-[var(--paper-border)] bg-white text-[var(--paper-ink)]"
                         />
                     </div>
 
-                    <div className="flex items-center justify-end gap-2">
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            className="h-10 cursor-pointer rounded-[8px] border border-[var(--paper-border)] px-4 text-sm text-[var(--paper-muted)] transition-colors hover:bg-black/5 hover:text-[var(--paper-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-                        >
-                            Cancel
-                        </button>
-                        <button
+                    <DialogFooter>
+                        <DialogCancel disabled={deleting}>Cancel</DialogCancel>
+                        <Button
                             type="button"
                             disabled={!matches || deleting}
-                            onClick={onConfirm}
-                            className="h-10 cursor-pointer rounded-[8px] bg-red-600 px-4 text-sm font-medium text-white transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            onClick={() => onDelete(listing.id)}
+                            className="cursor-pointer bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-300 disabled:cursor-not-allowed"
                         >
                             {deleting ? "Deleting..." : "Delete my project"}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>,
-        document.body
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     )
 }

@@ -1,7 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { useCallback, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import {
     Check,
@@ -16,6 +15,13 @@ import {
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { Spinner } from '@/components/ui/spinner'
+import { Button } from '@/components/ui/button'
+import {
+    Drawer,
+    DrawerContent,
+    DrawerTitle,
+    DrawerTrigger,
+} from '@/components/ui/drawer'
 import {
     Select,
     SelectContent,
@@ -31,9 +37,9 @@ import {
 } from '@/lib/queries/mutations'
 import type { Listing } from '@/lib/queries/types'
 import { UPLOAD_LIMITS_MB, uploadFile, validateFileType } from '@/lib/upload'
-import { useModalBehavior } from '@/lib/use-modal'
 import { authFieldClass } from '@/lib/auth-field'
 import { apiErrorMessage } from '@/lib/api'
+import { suppressListingNav } from '@/lib/suppress-listing-nav'
 import { cn } from '@/lib/utils'
 
 const FALLBACK_TAGS = [
@@ -89,65 +95,47 @@ function isValidUrl(value: string) {
 }
 
 export default function UploadProject({ listing, trigger, open: openProp, onOpenChange }: UploadProjectProps) {
-    const mounted = useSyncExternalStore(
-        () => () => {},
-        () => true,
-        () => false
-    )
     const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
     const isControlled = openProp !== undefined
     const open = isControlled ? !!openProp : uncontrolledOpen
     const setOpen = useCallback(
         (value: boolean) => {
+            if (!value) suppressListingNav()
             if (!isControlled) setUncontrolledOpen(value)
             onOpenChange?.(value)
         },
         [isControlled, onOpenChange]
     )
 
-    useModalBehavior(open, () => setOpen(false))
-
     return (
-        <>
+        <Drawer direction="right" open={open} onOpenChange={setOpen}>
             {trigger === null ? null : trigger !== undefined ? (
-                <span onClick={() => setOpen(true)} className="contents">
-                    {trigger}
-                </span>
+                <DrawerTrigger asChild>
+                    <span className="contents">{trigger}</span>
+                </DrawerTrigger>
             ) : (
-                <button
-                    type="button"
-                    onClick={() => setOpen(true)}
-                    className="paper-btn-dark inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 px-4 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
-                >
-                    <Plus className="h-4 w-4" />
-                    Upload project
-                </button>
+                <DrawerTrigger asChild>
+                    <Button
+                        type="button"
+                        className="h-10 shrink-0 cursor-pointer gap-2 rounded-[8px] bg-[#171717] px-4 text-sm font-medium text-white hover:bg-[#333333] focus-visible:ring-[#DA5CC7]/40"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Upload project
+                    </Button>
+                </DrawerTrigger>
             )}
 
-            {open && mounted && createPortal(
-                <div
-                    className="fixed inset-0 z-[250] bg-black/25 backdrop-blur-sm"
-                    onClick={() => setOpen(false)}
-                >
-                    <div
-                        className="flex min-h-full items-center justify-center overflow-y-auto p-4 sm:p-6"
-                        onClick={() => setOpen(false)}
-                    >
-                        <div
-                            className="auth-card relative my-auto flex h-[min(90vh,760px)] w-full max-w-xl flex-col overflow-hidden"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <UploadProjectForm
-                                key={listing?.id ?? 'new'}
-                                listing={listing}
-                                onDone={() => setOpen(false)}
-                            />
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-        </>
+            <DrawerContent className="h-full gap-0 overflow-hidden bg-[var(--paper-surface)] p-0 data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-xl">
+                <DrawerTitle className="sr-only">
+                    {listing ? 'Edit project' : 'Upload project'}
+                </DrawerTitle>
+                <UploadProjectForm
+                    key={listing?.id ?? 'new'}
+                    listing={listing}
+                    onDone={() => setOpen(false)}
+                />
+            </DrawerContent>
+        </Drawer>
     )
 }
 
@@ -316,7 +304,6 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
             setName(metadata.name)
             setDescription(metadata.description)
             setAiUsed(true)
-            toast.success('Name and description filled with AI')
         } catch (err) {
             toast.error(apiErrorMessage(err, 'Could not autofill from that link'))
         }

@@ -1,6 +1,7 @@
 export const queryKeys = {
     listings: ['listings'] as const,
     myListings: ['profile', 'listings'] as const,
+    myActivity: ['profile', 'activity'] as const,
     me: ['me'] as const,
     tags: ['tags'] as const,
     listing: (id: string) => ['listing', id] as const,

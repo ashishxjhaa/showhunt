@@ -14,6 +14,7 @@ import {
     MessageSquare,
     Play,
     SquareArrowOutUpRight,
+    Star,
     Twitter,
     Youtube,
 } from "lucide-react"
@@ -32,6 +33,45 @@ import type { Listing, ListingComment } from "@/lib/queries/types"
 import { cn } from "@/lib/utils"
 
 const COMMENT_MAX = 500
+
+/** Stable 1.0–5.0 score from upvotes (not random — climbs with engagement). */
+function ratingFromUpvotes(upvotes: number): number {
+    if (upvotes <= 0) return 3.0
+    const score = 2.8 + Math.log10(upvotes + 1) * 1.6
+    return Math.round(Math.min(5, Math.max(1, score)) * 10) / 10
+}
+
+function ListingRating({ upvotes }: { upvotes: number }) {
+    const rating = ratingFromUpvotes(upvotes)
+    const filled = Math.round(rating)
+
+    return (
+        <div
+            className="inline-flex items-center gap-1.5"
+            title={`Based on ${upvotes} upvote${upvotes === 1 ? "" : "s"}`}
+        >
+            <span className="inline-flex items-center gap-0.5" aria-hidden="true">
+                {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                        key={i}
+                        className={cn(
+                            "h-3.5 w-3.5",
+                            i < filled
+                                ? "fill-amber-400 text-amber-400"
+                                : "fill-transparent text-[var(--paper-border)]"
+                        )}
+                    />
+                ))}
+            </span>
+            <span className="text-xs font-medium tabular-nums text-[var(--paper-muted)]">
+                ({rating.toFixed(1)})
+            </span>
+            <span className="sr-only">
+                Rated {rating.toFixed(1)} out of 5
+            </span>
+        </div>
+    )
+}
 
 const PLATFORM_META: Record<
     string,
@@ -97,7 +137,11 @@ function MediaGallery({ listing }: { listing: Listing }) {
     const current = media[Math.min(active, media.length - 1)]!
 
     return (
-        <div className="overflow-hidden rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)]">
+        <section className="space-y-3">
+            <h2 className="text-base font-semibold text-[var(--paper-ink)]">
+                Overview
+            </h2>
+            <div className="overflow-hidden rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)]">
             <div className="relative aspect-video bg-[#F3F3F5]">
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -183,7 +227,8 @@ function MediaGallery({ listing }: { listing: Listing }) {
                     })}
                 </div>
             )}
-        </div>
+            </div>
+        </section>
     )
 }
 
@@ -363,14 +408,7 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
                                 {listing.description}
                             </p>
                             <div className="mt-3 flex flex-wrap items-center gap-2">
-                                {listing.tags.map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className="rounded-[8px] border border-[var(--paper-border)] bg-white px-2.5 py-1 text-xs font-medium text-[var(--paper-muted)]"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
+                                <ListingRating upvotes={listing.upvotes} />
                                 {listing.isOpenSource && (
                                     <span className="inline-flex items-center gap-1 rounded-[8px] border border-[#1CB061]/30 bg-[#1CB061]/10 px-2.5 py-1 text-xs font-medium text-[#1CB061]">
                                         <Github className="h-3 w-3" />

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { queryKeys, listingsKey, type ListingsFilters } from './keys'
-import type { Listing, ListingComment, ListingsResponse, User } from './types'
+import type { Listing, ListingComment, ListingsResponse, User, ActivityDay } from './types'
 
 export function useListings(filters?: ListingsFilters) {
     const params = new URLSearchParams()
@@ -80,6 +80,16 @@ export function useMyListings() {
             return res.data
         },
         refetchInterval: 15000,
+    })
+}
+
+export function useMyActivity() {
+    return useQuery({
+        queryKey: queryKeys.myActivity,
+        queryFn: async () => {
+            const res = await api.get<{ activity: ActivityDay[] }>('/api/v1/auth/activity')
+            return res.data.activity
+        },
     })
 }
 

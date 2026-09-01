@@ -2,6 +2,7 @@ import { Router } from "express"
 import {
   google,
   me,
+  getMyActivity,
   signin,
   signout,
   signup,
@@ -18,4 +19,5 @@ authRouter.post("/signin", validate(signinSchema), signin)
 authRouter.post("/google", validate(googleSchema), google)
 authRouter.post("/signout", signout)
 authRouter.get("/me", authMiddleware, me)
+authRouter.get("/activity", authMiddleware, getMyActivity)
 authRouter.patch("/avatar", authMiddleware, validate(updateAvatarSchema), updateAvatar)
