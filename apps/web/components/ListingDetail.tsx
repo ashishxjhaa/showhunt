@@ -6,7 +6,6 @@ import { useMemo, useState, type ComponentType, type FormEvent } from "react"
 import { toast } from "sonner"
 import {
     Apple,
-    ArrowBigUp,
     ArrowLeft,
     Flame,
     Github,
@@ -24,6 +23,7 @@ import ListingDetailSkeleton from "@/components/ListingDetailSkeleton"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import UserAvatar from "@/components/UserAvatar"
+import UpvoteButton from "@/components/UpvoteButton"
 import { apiErrorMessage } from "@/lib/api"
 import { authFieldClass } from "@/lib/auth-field"
 import { useComments, useListing, useMe, useSimilarListings } from "@/lib/queries/hooks"
@@ -381,27 +381,14 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
                         </div>
                     </div>
 
-                    <motion.button
-                        type="button"
-                        whileTap={{ scale: 0.92 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 22 }}
-                        onClick={handleUpvote}
-                        aria-label="Upvote"
+                    <UpvoteButton
+                        upvoted={listing.hasUpvoted}
+                        count={listing.upvotes}
                         disabled={upvote.isPending}
-                        className={cn(
-                            "flex h-14 w-14 shrink-0 cursor-pointer flex-col items-center justify-center self-start rounded-[8px] border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40",
-                            listing.hasUpvoted
-                                ? "border-[#DA5CC7] bg-[var(--paper-accent-soft)] text-[#DA5CC7]"
-                                : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)]"
-                        )}
-                    >
-                        <ArrowBigUp
-                            className={cn("h-5 w-5", listing.hasUpvoted && "fill-current")}
-                        />
-                        <span className="mt-0.5 text-xs font-semibold tabular-nums">
-                            {listing.upvotes}
-                        </span>
-                    </motion.button>
+                        className="h-14 w-14 shrink-0 self-start"
+                        iconClassName="h-5 w-5"
+                        onClick={handleUpvote}
+                    />
                 </div>
             </motion.section>
 

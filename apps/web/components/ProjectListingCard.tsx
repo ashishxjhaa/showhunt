@@ -2,9 +2,10 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ArrowBigUp, MessageSquare, SquareArrowOutUpRight } from "lucide-react"
+import { MessageSquare, SquareArrowOutUpRight } from "lucide-react"
 import { motion } from "motion/react"
 import type { Listing } from "@/lib/queries/types"
+import UpvoteButton from "@/components/UpvoteButton"
 
 interface ProjectListingCardProps {
     listing: Listing
@@ -73,26 +74,16 @@ export default function ProjectListingCard({
 
                 <div className="flex items-center justify-end gap-2 sm:gap-3">
                     {actionSlot}
-                    <motion.button
-                        type="button"
-                        whileTap={{ scale: 0.9 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    <UpvoteButton
+                        upvoted={listing.hasUpvoted}
+                        count={listing.upvotes}
+                        showCount={showCounts}
+                        className="h-12 w-12 sm:h-14 sm:w-14"
                         onClick={(e) => {
                             e.stopPropagation()
                             guardAction(() => onUpvote(listing.id))
                         }}
-                        aria-label="Upvote"
-                        className={`${actionBtnClass} ${
-                            listing.hasUpvoted
-                                ? "border-[#DA5CC7] bg-[var(--paper-accent-soft)] text-[#DA5CC7]"
-                                : "border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)]"
-                        }`}
-                    >
-                        <ArrowBigUp className={`h-4 w-4 ${listing.hasUpvoted ? "fill-current" : ""}`} />
-                        {showCounts && (
-                            <span className="mt-0.5 text-xs font-medium tabular-nums">{listing.upvotes}</span>
-                        )}
-                    </motion.button>
+                    />
                     <motion.button
                         type="button"
                         whileTap={{ scale: 0.9 }}
@@ -102,7 +93,7 @@ export default function ProjectListingCard({
                             router.push(`/listings/${listing.id}`)
                         }}
                         aria-label="Comments"
-                        className={`${actionBtnClass} border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50 hover:bg-[var(--paper-accent-soft)]`}
+                        className={`${actionBtnClass} border-[var(--paper-border)] text-[var(--paper-muted)] hover:border-[#DA5CC7]/50 hover:text-[#DA5CC7]`}
                     >
                         <MessageSquare className="h-4 w-4" />
                         {showCounts && (

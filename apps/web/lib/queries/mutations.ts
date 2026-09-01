@@ -1,10 +1,50 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
 import type { ListingsResponse, ListingInput, EnrichedMetadata, User, Listing, ListingComment } from './types'
 
 type ListingListKey = readonly unknown[]
+
+function toggleListingUpvote(listing: Listing): Listing {
+    return {
+        ...listing,
+        hasUpvoted: !listing.hasUpvoted,
+        upvotes: listing.upvotes + (listing.hasUpvoted ? -1 : 1),
+    }
+}
+
+/** Patch a listing inside every cached feed (paginated lists + mine). Immediate UI sync. */
+function patchListingInListCaches(
+    queryClient: QueryClient,
+    listingId: string,
+    patch: (listing: Listing) => Listing
+) {
+    queryClient.setQueriesData<ListingsResponse>(
+        { queryKey: queryKeys.listings },
+        (previous) => {
+            if (!previous?.listings) return previous
+            return {
+                ...previous,
+                listings: previous.listings.map((l) =>
+                    l.id === listingId ? patch(l) : l
+                ),
+            }
+        }
+    )
+    queryClient.setQueriesData<ListingsResponse>(
+        { queryKey: queryKeys.myListings },
+        (previous) => {
+            if (!previous?.listings) return previous
+            return {
+                ...previous,
+                listings: previous.listings.map((l) =>
+                    l.id === listingId ? patch(l) : l
+                ),
+            }
+        }
+    )
+}
 
 function useOptimisticUpvote(
     queryKey: ListingListKey,
@@ -26,13 +66,7 @@ function useOptimisticUpvote(
             if (!previous) return { previous: undefined }
 
             const listings = previous.listings.map((l) =>
-                l.id === listingId
-                    ? {
-                          ...l,
-                          hasUpvoted: !l.hasUpvoted,
-                          upvotes: l.upvotes + (l.hasUpvoted ? -1 : 1),
-                      }
-                    : l
+                l.id === listingId ? toggleListingUpvote(l) : l
             )
 
             if (queryKey === queryKeys.listings) {
@@ -47,15 +81,27 @@ function useOptimisticUpvote(
                 })
             }
 
+            // Keep detail cache in sync when upvoting from the feed.
+            const detail = queryClient.getQueryData<Listing>(queryKeys.listing(listingId))
+            if (detail) {
+                queryClient.setQueryData<Listing>(
+                    queryKeys.listing(listingId),
+                    toggleListingUpvote(detail)
+                )
+            }
+
             return { previous }
         },
-        onError: (_err, _listingId, context) => {
+        onError: (_err, listingId, context) => {
             if (context?.previous) {
                 queryClient.setQueryData(queryKey, context.previous)
             }
+            queryClient.invalidateQueries({ queryKey: queryKeys.listing(listingId) })
         },
-        onSettled: () => {
+        onSettled: (_data, _err, listingId) => {
+            // Soft background refresh — optimistic data already shown.
             queryClient.invalidateQueries({ queryKey })
+            queryClient.invalidateQueries({ queryKey: queryKeys.listing(listingId) })
             options?.invalidateKeys?.forEach((key) => {
                 queryClient.invalidateQueries({ queryKey: key })
             })
@@ -80,22 +126,44 @@ export function useListingUpvote(listingId: string) {
         },
         onMutate: async () => {
             await queryClient.cancelQueries({ queryKey: queryKeys.listing(listingId) })
-            const previous = queryClient.getQueryData<Listing>(queryKeys.listing(listingId))
-            if (previous) {
-                queryClient.setQueryData<Listing>(queryKeys.listing(listingId), {
-                    ...previous,
-                    hasUpvoted: !previous.hasUpvoted,
-                    upvotes: previous.upvotes + (previous.hasUpvoted ? -1 : 1),
-                })
+            await queryClient.cancelQueries({ queryKey: queryKeys.listings })
+
+            const previousDetail = queryClient.getQueryData<Listing>(
+                queryKeys.listing(listingId)
+            )
+            const previousLists = queryClient.getQueriesData<ListingsResponse>({
+                queryKey: queryKeys.listings,
+            })
+            const previousMine = queryClient.getQueryData<ListingsResponse>(
+                queryKeys.myListings
+            )
+
+            if (previousDetail) {
+                queryClient.setQueryData<Listing>(
+                    queryKeys.listing(listingId),
+                    toggleListingUpvote(previousDetail)
+                )
             }
-            return { previous }
+            patchListingInListCaches(queryClient, listingId, toggleListingUpvote)
+
+            return { previousDetail, previousLists, previousMine }
         },
         onError: (_err, _vars, context) => {
-            if (context?.previous) {
-                queryClient.setQueryData(queryKeys.listing(listingId), context.previous)
+            if (context?.previousDetail) {
+                queryClient.setQueryData(
+                    queryKeys.listing(listingId),
+                    context.previousDetail
+                )
+            }
+            context?.previousLists?.forEach(([key, data]) => {
+                queryClient.setQueryData(key, data)
+            })
+            if (context?.previousMine) {
+                queryClient.setQueryData(queryKeys.myListings, context.previousMine)
             }
         },
         onSettled: () => {
+            // Background reconcile only — UI already updated optimistically.
             queryClient.invalidateQueries({ queryKey: queryKeys.listing(listingId) })
             queryClient.invalidateQueries({ queryKey: queryKeys.listings })
             queryClient.invalidateQueries({ queryKey: queryKeys.myListings })

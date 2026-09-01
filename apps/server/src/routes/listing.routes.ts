@@ -24,13 +24,13 @@ import {
 
 export const listingRouter = Router()
 
-listingRouter.get("/", getListings)
+listingRouter.get("/", optionalAuth, getListings)
 listingRouter.get("/tags", getTags)
 listingRouter.get("/mine", authMiddleware, getMyListings)
 listingRouter.post("/", authMiddleware, validate(createListingSchema), createListing)
 listingRouter.post("/enrich", authMiddleware, validate(enrichSchema), enrichListing)
 listingRouter.get("/:id", optionalAuth, getListing)
-listingRouter.get("/:id/similar", getSimilarListings)
+listingRouter.get("/:id/similar", optionalAuth, getSimilarListings)
 listingRouter.patch("/:id", authMiddleware, validate(updateListingSchema), updateListing)
 listingRouter.delete("/:id", authMiddleware, deleteListing)
 listingRouter.post("/:id/upvote", authMiddleware, toggleUpvote)

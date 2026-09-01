@@ -39,14 +39,23 @@ function serializeListing(
   }
 }
 
-const listingInclude = {
+const listingIncludeBase = {
   user: { select: { fullName: true } },
-  upvotes: { select: { userId: true } },
   links: true,
   photos: { orderBy: { position: "asc" as const } },
   _count: { select: { comments: true } },
 } as const
 
+/** Only the current user's upvote row — drives hasUpvoted correctly. */
+function listingInclude(userId?: string) {
+  return {
+    ...listingIncludeBase,
+    upvotes: {
+      where: { userId: userId ?? "__none__" },
+      select: { userId: true as const },
+    },
+  }
+}
 
 export async function getListings(req: Request, res: Response) {
   const { tag, q, page: pageRaw, limit: limitRaw } = req.query as {
@@ -80,7 +89,7 @@ export async function getListings(req: Request, res: Response) {
   const [listings, total] = await prisma.$transaction([
     prisma.listing.findMany({
       where,
-      include: listingInclude,
+      include: listingInclude(req.userId),
       orderBy,
       skip,
       take: limit,
@@ -120,7 +129,7 @@ export async function getSimilarListings(req: Request, res: Response) {
       id: { not: listingId },
       tags: { hasSome: listing.tags },
     },
-    include: listingInclude,
+    include: listingInclude(req.userId),
     take: 24,
   })
 
@@ -146,7 +155,7 @@ export async function getSimilarListings(req: Request, res: Response) {
 export async function getMyListings(req: Request, res: Response) {
   const listings = await prisma.listing.findMany({
     where: { userId: req.userId },
-    include: listingInclude,
+    include: listingInclude(req.userId),
     orderBy: { createdAt: "desc" },
   })
 
@@ -204,7 +213,7 @@ export async function createListing(req: Request, res: Response) {
         ? { create: photos.map((url: string, position: number) => ({ url, position })) }
         : undefined,
     },
-    include: listingInclude,
+    include: listingInclude(req.userId),
   })
 
   res.status(201).json({ listing: serializeListing(listing) })
@@ -278,10 +287,7 @@ export async function updateListing(req: Request, res: Response) {
 
   const updated = await prisma.listing.findUnique({
     where: { id: listingId },
-    include: {
-      ...listingInclude,
-      upvotes: { where: { userId: req.userId }, select: { userId: true } },
-    },
+    include: listingInclude(req.userId),
   })
 
   res.json({ listing: updated ? serializeListing(updated) : null })
@@ -355,13 +361,7 @@ export async function getListing(req: Request, res: Response) {
 
   const listing = await prisma.listing.findUnique({
     where: { id: listingId },
-    include: {
-      ...listingInclude,
-      upvotes: {
-        where: { userId: req.userId ?? "__none__" },
-        select: { userId: true },
-      },
-    },
+    include: listingInclude(req.userId),
   })
   if (!listing) {
     throw new AppError("Listing not found", 404)
