@@ -22,9 +22,9 @@ const stats = [
 export default function StatsBand() {
   return (
     <section className="bg-white">
-      <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-14 sm:grid-cols-3 sm:px-10 sm:py-16">
+      <div className="mx-auto grid w-full max-w-7xl justify-items-center gap-10 px-5 py-14 text-center sm:grid-cols-3 sm:px-10 sm:py-16">
         {stats.map((stat) => (
-          <div key={stat.label}>
+          <div key={stat.label} className="flex w-full max-w-sm flex-col items-center">
             <p className="text-5xl font-semibold tracking-tight text-[var(--paper-ink)] sm:text-6xl">
               {stat.stat}
             </p>
