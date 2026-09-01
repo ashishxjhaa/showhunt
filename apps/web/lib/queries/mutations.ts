@@ -2,7 +2,7 @@ import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-q
 import { api } from '@/lib/api'
 import { sortByTrending } from '@/lib/ranking'
 import { queryKeys } from './keys'
-import type { ListingsResponse, ListingInput, EnrichedMetadata, User, Listing, ListingComment } from './types'
+import type { ListingsResponse, ListingInput, EnrichedMetadata, User, Listing, ListingComment, PublicProfileInput, PublicProfileResponse } from './types'
 
 type ListingListKey = readonly unknown[]
 
@@ -44,6 +44,18 @@ function patchListingInListCaches(
             }
         }
     )
+    queryClient.setQueriesData<PublicProfileResponse>(
+        { queryKey: ['user'] },
+        (previous) => {
+            if (!previous?.listings) return previous
+            return {
+                ...previous,
+                listings: previous.listings.map((l) =>
+                    l.id === listingId ? patch(l) : l
+                ),
+            }
+        }
+    )
 }
 
 function useOptimisticUpvote(
@@ -62,24 +74,20 @@ function useOptimisticUpvote(
         onMutate: async (listingId) => {
             await queryClient.cancelQueries({ queryKey })
 
-            const previous = queryClient.getQueryData<ListingsResponse>(queryKey)
+            const previous = queryClient.getQueryData<{ listings: Listing[] }>(queryKey)
             if (!previous) return { previous: undefined }
 
             const listings = previous.listings.map((l) =>
-                l.id === listingId ? toggleListingUpvote(l) : l
+                listingId === l.id ? toggleListingUpvote(l) : l
             )
 
-            if (queryKey === queryKeys.listings) {
-                queryClient.setQueryData<ListingsResponse>(queryKey, {
-                    ...previous,
-                    listings: sortByTrending(listings),
-                })
-            } else {
-                queryClient.setQueryData<ListingsResponse>(queryKey, {
-                    ...previous,
-                    listings,
-                })
-            }
+            queryClient.setQueryData(queryKey, {
+                ...previous,
+                listings:
+                    queryKey === queryKeys.listings
+                        ? sortByTrending(listings)
+                        : listings,
+            })
 
             // Keep detail cache in sync when upvoting from the feed.
             const detail = queryClient.getQueryData<Listing>(queryKeys.listing(listingId))
@@ -102,6 +110,7 @@ function useOptimisticUpvote(
             // Soft background refresh — optimistic data already shown.
             queryClient.invalidateQueries({ queryKey })
             queryClient.invalidateQueries({ queryKey: queryKeys.listing(listingId) })
+            queryClient.invalidateQueries({ queryKey: ['user'] })
             options?.invalidateKeys?.forEach((key) => {
                 queryClient.invalidateQueries({ queryKey: key })
             })
@@ -167,6 +176,7 @@ export function useListingUpvote(listingId: string) {
             queryClient.invalidateQueries({ queryKey: queryKeys.listing(listingId) })
             queryClient.invalidateQueries({ queryKey: queryKeys.listings })
             queryClient.invalidateQueries({ queryKey: queryKeys.myListings })
+            queryClient.invalidateQueries({ queryKey: ['user'] })
         },
     })
 }
@@ -248,6 +258,23 @@ export function useUpdateAvatar() {
         },
         onSuccess: (user) => {
             queryClient.setQueryData(queryKeys.me, user)
+        },
+    })
+}
+
+export function useUpdatePublicProfile() {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async (data: PublicProfileInput) => {
+            const res = await api.put<{ user: User }>('/api/v1/auth/public-profile', data)
+            return res.data.user
+        },
+        onSuccess: (user) => {
+            queryClient.setQueryData(queryKeys.me, user)
+            if (user.username) {
+                queryClient.invalidateQueries({ queryKey: queryKeys.publicUser(user.username) })
+            }
         },
     })
 }

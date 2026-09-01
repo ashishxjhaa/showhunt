@@ -3,15 +3,25 @@ import bcrypt from "bcrypt"
 import { prisma } from "../lib/prisma"
 import { createToken, setAuthCookie, clearAuthCookie } from "../lib/auth"
 import { verifyGoogleIdToken } from "../lib/google"
-import { AppError } from "../lib/errors"
+import { AppError, isUniqueConstraintError } from "../lib/errors"
+import { getUserActivity } from "../lib/activity"
 import { defaultAvatarIdFor } from "../lib/schema"
+import type { PublicProfileBody } from "../lib/schema"
 
-const USER_SELECT = {
+export const USER_SELECT = {
   id: true,
   fullName: true,
   email: true,
   avatarUrl: true,
   createdAt: true,
+  username: true,
+  bio: true,
+  twitterUrl: true,
+  githubUrl: true,
+  portfolioUrl: true,
+  linkedinUrl: true,
+  state: true,
+  techStack: true,
 } as const
 
 export async function signup(req: Request, res: Response) {
@@ -58,6 +68,14 @@ export async function signin(req: Request, res: Response) {
       email: user.email,
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
+      username: user.username,
+      bio: user.bio,
+      twitterUrl: user.twitterUrl,
+      githubUrl: user.githubUrl,
+      portfolioUrl: user.portfolioUrl,
+      linkedinUrl: user.linkedinUrl,
+      state: user.state,
+      techStack: user.techStack,
     },
   })
 }
@@ -99,6 +117,14 @@ export async function google(req: Request, res: Response) {
       email: user.email,
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
+      username: user.username,
+      bio: user.bio,
+      twitterUrl: user.twitterUrl,
+      githubUrl: user.githubUrl,
+      portfolioUrl: user.portfolioUrl,
+      linkedinUrl: user.linkedinUrl,
+      state: user.state,
+      techStack: user.techStack,
     },
   })
 }
@@ -129,64 +155,9 @@ export async function me(req: Request, res: Response) {
   res.json({ user })
 }
 
-function toDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
-
-function eachDayKey(since: Date, today: Date): string[] {
-  const keys: string[] = []
-  const cursor = new Date(since)
-  while (cursor <= today) {
-    keys.push(toDateKey(cursor))
-    cursor.setUTCDate(cursor.getUTCDate() + 1)
-  }
-  return keys
-}
-
 /** Daily listings created + upvotes received — last 15 days. */
 export async function getMyActivity(req: Request, res: Response) {
-  const since = new Date()
-  since.setUTCDate(since.getUTCDate() - 15)
-  since.setUTCHours(0, 0, 0, 0)
-
-  const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
-
-  const listings = await prisma.listing.findMany({
-    where: { userId: req.userId },
-    select: { id: true, createdAt: true },
-  })
-  const listingIds = listings.map((l) => l.id)
-
-  const listingsByDay = new Map<string, number>()
-  for (const listing of listings) {
-    if (listing.createdAt < since) continue
-    const key = toDateKey(listing.createdAt)
-    listingsByDay.set(key, (listingsByDay.get(key) ?? 0) + 1)
-  }
-
-  const upvotesByDay = new Map<string, number>()
-  if (listingIds.length > 0) {
-    const upvotes = await prisma.upvote.findMany({
-      where: {
-        listingId: { in: listingIds },
-        createdAt: { gte: since },
-      },
-      select: { createdAt: true },
-    })
-
-    for (const row of upvotes) {
-      const key = toDateKey(row.createdAt)
-      upvotesByDay.set(key, (upvotesByDay.get(key) ?? 0) + 1)
-    }
-  }
-
-  const activity = eachDayKey(since, today).map((date) => ({
-    date,
-    listings: listingsByDay.get(date) ?? 0,
-    upvotes: upvotesByDay.get(date) ?? 0,
-  }))
-
+  const activity = await getUserActivity(req.userId!)
   res.json({ activity })
 }
 
@@ -200,4 +171,41 @@ export async function updateAvatar(req: Request, res: Response) {
   })
 
   res.json({ user })
+}
+
+export async function updatePublicProfile(req: Request, res: Response) {
+  const body = req.body as PublicProfileBody
+
+  const current = await prisma.user.findUnique({
+    where: { id: req.userId },
+    select: { username: true },
+  })
+  if (!current) {
+    throw new AppError("User not found", 404)
+  }
+
+  const data = {
+    bio: body.bio,
+    twitterUrl: body.twitterUrl,
+    githubUrl: body.githubUrl,
+    portfolioUrl: body.portfolioUrl,
+    linkedinUrl: body.linkedinUrl,
+    state: body.state,
+    techStack: body.techStack,
+    ...(current.username ? {} : { username: body.username }),
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data,
+      select: USER_SELECT,
+    })
+    res.json({ user })
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      throw new AppError("Username is already taken", 409)
+    }
+    throw err
+  }
 }

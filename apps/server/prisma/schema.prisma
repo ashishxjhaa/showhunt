@@ -19,17 +19,25 @@ enum LinkPlatform {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  fullName  String
-  email     String    @unique
-  password  String?
-  googleId  String?   @unique
-  avatarUrl String?
-  listings  Listing[]
-  comments  Comment[]
-  upvotes   Upvote[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(uuid())
+  fullName     String
+  email        String    @unique
+  password     String?
+  googleId     String?   @unique
+  avatarUrl    String?
+  username     String?   @unique
+  bio          String?
+  twitterUrl   String?
+  githubUrl    String?
+  portfolioUrl String?
+  linkedinUrl  String?
+  state        String?
+  techStack    String[]  @default([])
+  listings     Listing[]
+  comments     Comment[]
+  upvotes      Upvote[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Listing {

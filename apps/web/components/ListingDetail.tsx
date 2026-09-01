@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useMemo, useState, type ComponentType, type FormEvent } from "react"
 import { toast } from "sonner"
@@ -26,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import UserAvatar from "@/components/UserAvatar"
 import UpvoteButton from "@/components/UpvoteButton"
 import { apiErrorMessage } from "@/lib/api"
-import { authFieldClass } from "@/lib/auth-field"
+import { authTextareaClass } from "@/lib/auth-field"
 import { useComments, useListing, useMe, useSimilarListings } from "@/lib/queries/hooks"
 import { useCreateComment, useListingUpvote } from "@/lib/queries/mutations"
 import type { Listing, ListingComment } from "@/lib/queries/types"
@@ -301,7 +302,7 @@ function CommentComposer({
                     onChange={(e) => setContent(e.target.value)}
                     placeholder={user ? "What do you think?" : "Sign in to join the discussion"}
                     rows={3}
-                    className={cn(authFieldClass, "h-auto min-h-[5rem] resize-none py-2.5")}
+                    className={authTextareaClass}
                 />
                 <div className="mt-2 flex justify-end">
                     <button
@@ -536,18 +537,51 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
                             Maker
                         </h2>
                         <div className="mt-4">
-                            <p className="text-sm font-semibold text-[var(--paper-ink)]">
-                                {listing.user?.fullName ?? "Unknown"}
-                            </p>
-                            {listing.createdAt && (
-                                <p className="mt-1 text-xs text-[var(--paper-muted)]">
-                                    Launched{" "}
-                                    {new Date(listing.createdAt).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                        year: "numeric",
-                                    })}
-                                </p>
+                            {listing.user?.username ? (
+                                <Link
+                                    href={`/u/${listing.user.username}`}
+                                    className="group/maker flex items-center gap-3 rounded-[8px] -mx-1 px-1 py-1 transition-colors hover:bg-[var(--paper-accent-soft)]"
+                                >
+                                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[var(--paper-border)]">
+                                        <UserAvatar
+                                            avatarUrl={listing.user.avatarUrl}
+                                            seed={listing.user.username}
+                                            size={40}
+                                            alt={`${listing.user.fullName} avatar`}
+                                        />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-[var(--paper-ink)] transition-colors group-hover/maker:text-[#DA5CC7]">
+                                            {listing.user.fullName}
+                                        </p>
+                                        {listing.createdAt && (
+                                            <p className="mt-0.5 text-xs text-[var(--paper-muted)]">
+                                                Launched{" "}
+                                                {new Date(listing.createdAt).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                })}
+                                            </p>
+                                        )}
+                                    </div>
+                                </Link>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-semibold text-[var(--paper-ink)]">
+                                        {listing.user?.fullName ?? "Unknown"}
+                                    </p>
+                                    {listing.createdAt && (
+                                        <p className="mt-1 text-xs text-[var(--paper-muted)]">
+                                            Launched{" "}
+                                            {new Date(listing.createdAt).toLocaleDateString("en-US", {
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric",
+                                            })}
+                                        </p>
+                                    )}
+                                </>
                             )}
                         </div>
                     </section>

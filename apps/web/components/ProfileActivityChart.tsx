@@ -14,19 +14,30 @@ import {
     ChartTooltipContent,
     type ChartConfig,
 } from "@/components/ui/chart"
-import { useMyActivity } from "@/lib/queries/hooks"
+import { Skeleton } from "@/components/ui/skeleton"
+import type { ActivityDay } from "@/lib/queries/types"
+import { cn } from "@/lib/utils"
 
 const chartConfig = {
     listings: { label: "Listings", color: "#2563eb" },
     upvotes: { label: "Upvotes", color: "#60a5fa" },
 } satisfies ChartConfig
 
-export default function ProfileActivityChart() {
-    const { data, isLoading } = useMyActivity()
+interface ProfileActivityChartProps {
+    data?: ActivityDay[]
+    isLoading?: boolean
+    className?: string
+}
+
+export default function ProfileActivityChart({
+    data,
+    isLoading = false,
+    className,
+}: ProfileActivityChartProps) {
     const chartData = data ?? []
 
     return (
-        <Card className="w-full max-w-3xl gap-0 py-0">
+        <Card className={cn("w-full gap-0 py-0", className)}>
             <CardHeader className="px-6 pt-6 pb-4">
                 <CardTitle>Activity</CardTitle>
                 <CardDescription>
@@ -36,37 +47,41 @@ export default function ProfileActivityChart() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="px-6 pb-6">
-                <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-                    <BarChart accessibilityLayer data={chartData}>
-                        <XAxis
-                            dataKey="date"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                            minTickGap={32}
-                            tickFormatter={(value) =>
-                                new Date(value).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                })
-                            }
-                        />
-                        <Bar
-                            dataKey="listings"
-                            stackId="a"
-                            fill="var(--color-listings)"
-                        />
-                        <Bar
-                            dataKey="upvotes"
-                            stackId="a"
-                            fill="var(--color-upvotes)"
-                        />
-                        <ChartTooltip
-                            content={<ChartTooltipContent />}
-                            cursor={false}
-                        />
-                    </BarChart>
-                </ChartContainer>
+                {isLoading ? (
+                    <Skeleton className="h-[250px] w-full rounded-[8px] bg-[var(--paper-border)]" />
+                ) : (
+                    <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
+                        <BarChart accessibilityLayer data={chartData}>
+                            <XAxis
+                                dataKey="date"
+                                tickLine={false}
+                                tickMargin={10}
+                                axisLine={false}
+                                minTickGap={32}
+                                tickFormatter={(value) =>
+                                    new Date(value).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                    })
+                                }
+                            />
+                            <Bar
+                                dataKey="listings"
+                                stackId="a"
+                                fill="var(--color-listings)"
+                            />
+                            <Bar
+                                dataKey="upvotes"
+                                stackId="a"
+                                fill="var(--color-upvotes)"
+                            />
+                            <ChartTooltip
+                                content={<ChartTooltipContent />}
+                                cursor={false}
+                            />
+                        </BarChart>
+                    </ChartContainer>
+                )}
             </CardContent>
         </Card>
     )

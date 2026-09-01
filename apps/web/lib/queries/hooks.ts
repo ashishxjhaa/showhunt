@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { queryKeys, listingsKey, type ListingsFilters } from './keys'
-import type { Listing, ListingComment, ListingsResponse, User, ActivityDay } from './types'
+import type { Listing, ListingComment, ListingsResponse, User, ActivityDay, PublicProfileResponse } from './types'
 
 export function useListings(filters?: ListingsFilters) {
     const params = new URLSearchParams()
@@ -99,6 +99,20 @@ export function useMe() {
         queryFn: async () => {
             const res = await api.get<{ user: User }>('/api/v1/auth/me')
             return res.data.user
+        },
+        retry: false,
+    })
+}
+
+export function usePublicUser(username: string | undefined) {
+    return useQuery({
+        queryKey: queryKeys.publicUser(username ?? ''),
+        enabled: !!username,
+        queryFn: async () => {
+            const res = await api.get<PublicProfileResponse>(
+                `/api/v1/users/${encodeURIComponent(username ?? '')}`
+            )
+            return res.data
         },
         retry: false,
     })

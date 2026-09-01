@@ -37,7 +37,7 @@ import {
 } from '@/lib/queries/mutations'
 import type { Listing } from '@/lib/queries/types'
 import { UPLOAD_LIMITS_MB, uploadFile, validateFileType } from '@/lib/upload'
-import { authFieldClass } from '@/lib/auth-field'
+import { authFieldClass, authTextareaClass } from '@/lib/auth-field'
 import { apiErrorMessage } from '@/lib/api'
 import { suppressListingNav } from '@/lib/suppress-listing-nav'
 import { cn } from '@/lib/utils'
@@ -534,7 +534,7 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
                                 rows={3}
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className={cn(authFieldClass, 'h-auto min-h-[5rem] resize-none py-2')}
+                                className={authTextareaClass}
                             />
                         </div>
 

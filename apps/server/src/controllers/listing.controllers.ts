@@ -7,10 +7,10 @@ import { CURATED_TAGS } from "../lib/tags"
 import type { CreateListingBody, UpdateListingBody } from "../lib/schema"
 import type { Prisma } from "../generated/prisma/client"
 
-function serializeListing(
+export function serializeListing(
   listing: Prisma.ListingGetPayload<{
     include: {
-      user: { select: { fullName: true } }
+      user: { select: { fullName: true; username: true; avatarUrl: true } }
       upvotes: { select: { userId: true } }
       links: true
       photos: true
@@ -34,20 +34,24 @@ function serializeListing(
     comments: listing._count.comments,
     hasUpvoted: listing.upvotes.length > 0,
     links: listing.links.map((l) => ({ platform: l.platform, url: l.url })),
-    user: { fullName: listing.user.fullName },
+    user: {
+      fullName: listing.user.fullName,
+      username: listing.user.username,
+      avatarUrl: listing.user.avatarUrl,
+    },
     createdAt: listing.createdAt,
   }
 }
 
 const listingIncludeBase = {
-  user: { select: { fullName: true } },
+  user: { select: { fullName: true, username: true, avatarUrl: true } },
   links: true,
   photos: { orderBy: { position: "asc" as const } },
   _count: { select: { comments: true } },
 } as const
 
 /** Only the current user's upvote row — drives hasUpvoted correctly. */
-function listingInclude(userId?: string) {
+export function listingInclude(userId?: string) {
   return {
     ...listingIncludeBase,
     upvotes: {

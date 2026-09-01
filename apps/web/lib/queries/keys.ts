@@ -6,6 +6,7 @@ export const queryKeys = {
     tags: ['tags'] as const,
     listing: (id: string) => ['listing', id] as const,
     comments: (id: string) => ['listing', id, 'comments'] as const,
+    publicUser: (username: string) => ['user', username] as const,
 }
 
 export interface ListingsFilters {

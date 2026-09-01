@@ -7,10 +7,17 @@ import {
   signout,
   signup,
   updateAvatar,
+  updatePublicProfile,
 } from "../controllers/auth.controllers"
 import { authMiddleware } from "../middleware/auth.middleware"
 import { validate } from "../middleware/validate.middleware"
-import { googleSchema, signinSchema, signupSchema, updateAvatarSchema } from "../lib/schema"
+import {
+  googleSchema,
+  publicProfileSchema,
+  signinSchema,
+  signupSchema,
+  updateAvatarSchema,
+} from "../lib/schema"
 
 export const authRouter = Router()
 
@@ -21,3 +28,4 @@ authRouter.post("/signout", signout)
 authRouter.get("/me", authMiddleware, me)
 authRouter.get("/activity", authMiddleware, getMyActivity)
 authRouter.patch("/avatar", authMiddleware, validate(updateAvatarSchema), updateAvatar)
+authRouter.put("/public-profile", authMiddleware, validate(publicProfileSchema), updatePublicProfile)

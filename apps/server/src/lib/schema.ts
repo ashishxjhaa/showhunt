@@ -1,5 +1,8 @@
 import { z } from "zod"
+import { isIndiaStateSlug } from "./india-states"
+import { MAX_TECH_STACK, MAX_TECH_STACK_ITEM } from "./tech-stack"
 import { isCuratedTag } from "./tags"
+import { isReservedUsername, USERNAME_PATTERN } from "./username"
 
 export const signupSchema = z.object({
   fullName: z.string().min(2, "Name is too short").max(80),
@@ -126,8 +129,48 @@ export const createCommentSchema = z.object({
   content: z.string().trim().min(1, "Comment cannot be empty").max(500, "Comment is too long"),
 })
 
+const optionalProfileUrl = (message: string) =>
+  z
+    .string()
+    .trim()
+    .transform((value) => (value === "" ? null : value))
+    .pipe(z.string().url(message).nullable())
+
+export const publicProfileSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(USERNAME_PATTERN, "Username must be 3–20 characters: lowercase letters, numbers, underscores")
+    .refine((value) => !isReservedUsername(value), "This username is reserved"),
+  bio: z.string().trim().min(1, "Bio is required").max(280, "Bio is too long"),
+  twitterUrl: optionalProfileUrl("Invalid Twitter link"),
+  githubUrl: optionalProfileUrl("Invalid GitHub link"),
+  portfolioUrl: optionalProfileUrl("Invalid portfolio link"),
+  linkedinUrl: optionalProfileUrl("Invalid LinkedIn link"),
+  state: z
+    .string()
+    .min(1, "State is required")
+    .refine(isIndiaStateSlug, "Pick a valid Indian state or union territory"),
+  techStack: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, "Tech stack item is empty")
+        .max(MAX_TECH_STACK_ITEM, "Tech stack item is too long")
+    )
+    .min(1, "Pick at least one tech")
+    .max(MAX_TECH_STACK, `Pick at most ${MAX_TECH_STACK} techs`)
+    .refine(
+      (items) => new Set(items.map((item) => item.toLowerCase())).size === items.length,
+      "Duplicate tech stack items"
+    ),
+})
+
 export type PresignBody = z.infer<typeof presignSchema>
 export type CreateListingBody = z.infer<typeof createListingSchema>
 export type UpdateListingBody = z.infer<typeof updateListingSchema>
 export type CreateCommentBody = z.infer<typeof createCommentSchema>
+export type PublicProfileBody = z.infer<typeof publicProfileSchema>
 

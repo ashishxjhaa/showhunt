@@ -12,7 +12,11 @@ export interface Listing {
     comments: number
     hasUpvoted: boolean
     links: { platform: string; url: string }[]
-    user: { fullName: string }
+    user: {
+        fullName: string
+        username: string | null
+        avatarUrl: string | null
+    }
     createdAt?: string | Date
 }
 
@@ -51,12 +55,51 @@ export interface User {
     email: string
     avatarUrl: string | null
     createdAt: string
+    username: string | null
+    bio: string | null
+    twitterUrl: string | null
+    githubUrl: string | null
+    portfolioUrl: string | null
+    linkedinUrl: string | null
+    state: string | null
+    techStack: string[]
+}
+
+export interface PublicUser {
+    id: string
+    fullName: string
+    username: string
+    avatarUrl: string | null
+    bio: string
+    twitterUrl: string | null
+    githubUrl: string | null
+    portfolioUrl: string | null
+    linkedinUrl: string | null
+    techStack: string[]
+    createdAt: string
+}
+
+export interface PublicProfileInput {
+    username: string
+    bio: string
+    twitterUrl: string
+    githubUrl: string
+    portfolioUrl: string
+    linkedinUrl: string
+    state: string
+    techStack: string[]
 }
 
 export interface ActivityDay {
     date: string
     listings: number
     upvotes: number
+}
+
+export interface PublicProfileResponse {
+    user: PublicUser
+    activity: ActivityDay[]
+    listings: Listing[]
 }
 
 export interface ListingsResponse {
