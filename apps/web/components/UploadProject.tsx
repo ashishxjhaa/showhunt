@@ -222,7 +222,7 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
             return null
         }
         const limitMb = UPLOAD_LIMITS_MB[kind]
-        if (file.size > limitMb * 1024 * 1024) {
+        if (limitMb != null && file.size > limitMb * 1024 * 1024) {
             toast.error(`File must be under ${limitMb}MB`)
             return null
         }
@@ -682,7 +682,7 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
                                                   : 'Upload demo video'}
                                         </p>
                                         <p className="mt-0.5 text-xs text-[var(--paper-muted)]">
-                                            MP4, WebM or MOV · under {UPLOAD_LIMITS_MB.video}MB
+                                            MP4, WebM or MOV
                                         </p>
                                         {video && !uploadingVideo && (
                                             <span className="mt-1.5 inline-block text-sm font-medium text-[#DA5CC7]">Replace</span>

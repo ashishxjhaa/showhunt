@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { queryKeys, listingsKey, type ListingsFilters } from './keys'
-import type { Listing, ListingComment, ListingsResponse, User, ActivityDay, PublicProfileResponse } from './types'
+import type { Listing, ListingComment, ListingsResponse, User, ActivityDay, PublicProfileResponse, MapBuilder } from './types'
 
 export function useListings(filters?: ListingsFilters) {
     const params = new URLSearchParams()
@@ -115,5 +115,18 @@ export function usePublicUser(username: string | undefined) {
             return res.data
         },
         retry: false,
+    })
+}
+
+export function useBuildersMap() {
+    return useQuery({
+        queryKey: queryKeys.buildersMap,
+        queryFn: async () => {
+            const res = await api.get<{ builders?: MapBuilder[]; makers?: MapBuilder[] }>(
+                '/api/v1/users/map'
+            )
+            return res.data.builders ?? res.data.makers ?? []
+        },
+        staleTime: 60_000,
     })
 }

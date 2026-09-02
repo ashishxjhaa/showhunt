@@ -108,7 +108,7 @@ export async function generateMetadata(
   }
 
   const systemPrompt = [
-    "You write launch listings for ShowHunt, a community where makers launch products.",
+    "You write launch listings for ShowHunt, a community where builders launch products.",
     "Given scraped metadata from a website, produce listing fields.",
     "Respond ONLY with a JSON object with these keys:",
     '- "name": the product name as it brands itself, at most 60 characters',

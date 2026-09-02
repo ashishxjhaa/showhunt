@@ -3,7 +3,7 @@ import { api } from '@/lib/api'
 export const UPLOAD_LIMITS_MB = {
     logo: 5,
     photo: 5,
-    video: 100,
+    video: null,
 } as const
 
 export type UploadKind = keyof typeof UPLOAD_LIMITS_MB
@@ -38,6 +38,9 @@ export async function uploadFile(file: File, kind: UploadKind): Promise<string> 
     // The browser sets Content-Length from the File body to match the signed size.
     await api.put(uploadUrl, file, {
         headers: { 'Content-Type': file.type },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        timeout: 0,
     })
 
     return publicUrl

@@ -7,6 +7,7 @@ export const queryKeys = {
     listing: (id: string) => ['listing', id] as const,
     comments: (id: string) => ['listing', id, 'comments'] as const,
     publicUser: (username: string) => ['user', username] as const,
+    buildersMap: ['users', 'map'] as const,
 }
 
 export interface ListingsFilters {

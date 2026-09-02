@@ -75,8 +75,16 @@ export interface PublicUser {
     githubUrl: string | null
     portfolioUrl: string | null
     linkedinUrl: string | null
+    state: string | null
     techStack: string[]
     createdAt: string
+}
+
+export interface MapBuilder {
+    username: string
+    fullName: string
+    avatarUrl: string | null
+    state: string
 }
 
 export interface PublicProfileInput {

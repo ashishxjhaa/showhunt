@@ -275,6 +275,7 @@ export function useUpdatePublicProfile() {
             if (user.username) {
                 queryClient.invalidateQueries({ queryKey: queryKeys.publicUser(user.username) })
             }
+            queryClient.invalidateQueries({ queryKey: queryKeys.buildersMap })
         },
     })
 }

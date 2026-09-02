@@ -20,13 +20,18 @@ export async function createPresignedUpload(req: Request, res: Response) {
     throw new AppError(`${limits.label} must be a supported file type`, 400)
   }
 
-  if (fileSize > limits.maxBytes) {
+  if (limits.maxBytes != null && fileSize > limits.maxBytes) {
     const maxMb = Math.round(limits.maxBytes / (1024 * 1024))
     throw new AppError(`${limits.label} must be under ${maxMb}MB`, 400)
   }
 
   const key = buildKey(userId, kind, ext)
-  const uploadUrl = await presignPut(key, contentType, fileSize)
+  const uploadUrl = await presignPut(
+    key,
+    contentType,
+    fileSize,
+    kind === "video" ? 3600 : 600
+  )
   const publicUrl = publicUrlFor(key)
 
   res.status(201).json({ uploadUrl, publicUrl, key })

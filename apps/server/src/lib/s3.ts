@@ -15,7 +15,7 @@ export const s3Client = new S3Client({ region: REGION })
 export const UPLOAD_LIMITS = {
   logo: { label: "Logo", maxBytes: 5 * 1024 * 1024 },
   photo: { label: "Photo", maxBytes: 5 * 1024 * 1024 },
-  video: { label: "Video", maxBytes: 100 * 1024 * 1024 },
+  video: { label: "Video", maxBytes: null },
 } as const
 
 export type UploadKind = keyof typeof UPLOAD_LIMITS
@@ -45,7 +45,8 @@ export function buildKey(userId: string, kind: UploadKind, ext: string): string 
 export async function presignPut(
   key: string,
   contentType: string,
-  contentLength: number
+  contentLength: number,
+  expiresIn = 600
 ): Promise<string> {
   if (!BUCKET) throw new AppError("S3 is not configured", 500)
   const command = new PutObjectCommand({
@@ -54,7 +55,7 @@ export async function presignPut(
     ContentType: contentType,
     ContentLength: contentLength,
   })
-  return getSignedUrl(s3Client, command, { expiresIn: 600 })
+  return getSignedUrl(s3Client, command, { expiresIn })
 }
 
 export function publicUrlFor(key: string): string {

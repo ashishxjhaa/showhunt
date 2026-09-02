@@ -15,6 +15,7 @@ const PUBLIC_USER_SELECT = {
   githubUrl: true,
   portfolioUrl: true,
   linkedinUrl: true,
+  state: true,
   techStack: true,
   createdAt: true,
 } as const
@@ -47,4 +48,30 @@ export async function getPublicUser(req: Request, res: Response) {
     activity,
     listings: listings.map(serializeListing),
   })
+}
+
+export async function getBuildersMap(_req: Request, res: Response) {
+  const rows = await prisma.user.findMany({
+    select: {
+      username: true,
+      fullName: true,
+      avatarUrl: true,
+      state: true,
+    },
+    orderBy: { createdAt: "asc" },
+  })
+
+  const builders = rows.flatMap((row) => {
+    if (!row.username || !row.state) return []
+    return [
+      {
+        username: row.username,
+        fullName: row.fullName,
+        avatarUrl: row.avatarUrl,
+        state: row.state,
+      },
+    ]
+  })
+
+  res.json({ builders })
 }

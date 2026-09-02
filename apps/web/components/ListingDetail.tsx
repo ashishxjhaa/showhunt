@@ -534,13 +534,13 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
                         className="rounded-[8px] border border-[var(--paper-border)] bg-[var(--paper-surface)] p-5"
                     >
                         <h2 className="text-sm font-semibold uppercase tracking-wide text-[#3559E9]">
-                            Maker
+                            Builder
                         </h2>
                         <div className="mt-4">
                             {listing.user?.username ? (
                                 <Link
                                     href={`/u/${listing.user.username}`}
-                                    className="group/maker flex items-center gap-3 rounded-[8px] -mx-1 px-1 py-1 transition-colors hover:bg-[var(--paper-accent-soft)]"
+                                    className="group/builder flex items-center gap-3 rounded-[8px] -mx-1 px-1 py-1 transition-colors hover:bg-[var(--paper-accent-soft)]"
                                 >
                                     <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[var(--paper-border)]">
                                         <UserAvatar
@@ -551,7 +551,7 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
                                         />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-[var(--paper-ink)] transition-colors group-hover/maker:text-[#DA5CC7]">
+                                        <p className="text-sm font-semibold text-[var(--paper-ink)] transition-colors group-hover/builder:text-[#DA5CC7]">
                                             {listing.user.fullName}
                                         </p>
                                         {listing.createdAt && (
