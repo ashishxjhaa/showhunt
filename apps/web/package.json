@@ -6,8 +6,7 @@
     "dev": "bun run --bun next dev",
     "build": "next build",
     "start": "bun run --bun next start",
-    "lint": "eslint",
-    "screenshots": "node scripts/capture-screenshots.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
     "@dicebear/core": "10.6.0",
