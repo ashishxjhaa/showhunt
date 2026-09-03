@@ -2,7 +2,7 @@ import type { Request, Response } from "express"
 import bcrypt from "bcrypt"
 import { prisma } from "../lib/prisma"
 import { createToken, setAuthCookie, clearAuthCookie } from "../lib/auth"
-import { verifyGoogleIdToken } from "../lib/google"
+import { verifyGoogleAuth } from "../lib/google"
 import { AppError, isUniqueConstraintError } from "../lib/errors"
 import { getUserActivity } from "../lib/activity"
 import { defaultAvatarIdFor } from "../lib/schema"
@@ -81,7 +81,10 @@ export async function signin(req: Request, res: Response) {
 }
 
 export async function google(req: Request, res: Response) {
-  const profile = await verifyGoogleIdToken(req.body.credential)
+  const profile = await verifyGoogleAuth({
+    accessToken: req.body.accessToken,
+    credential: req.body.credential,
+  })
 
   let user = await prisma.user.findUnique({
     where: { googleId: profile.googleId },

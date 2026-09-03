@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Script from 'next/script'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
@@ -8,16 +8,27 @@ import { toast } from 'sonner'
 import { api, apiErrorMessage } from '@/lib/api'
 import { queryKeys } from '@/lib/queries/keys'
 
+type GoogleTokenClient = {
+  requestAccessToken: (overrideConfig?: { prompt?: string }) => void
+}
+
+type GoogleTokenResponse = {
+  access_token?: string
+  error?: string
+  error_description?: string
+}
+
 declare global {
   interface Window {
     google?: {
       accounts: {
-        id: {
-          initialize: (config: {
+        oauth2: {
+          initTokenClient: (config: {
             client_id: string
-            callback: (response: { credential: string }) => void
-          }) => void
-          renderButton: (element: HTMLElement, options: Record<string, unknown>) => void
+            scope: string
+            callback: (response: GoogleTokenResponse) => void
+            error_callback?: (error: { type?: string; message?: string }) => void
+          }) => GoogleTokenClient
         }
       }
     }
@@ -25,21 +36,21 @@ declare global {
 }
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+const GOOGLE_SCOPES = 'openid email profile'
 
 export default function GoogleSignInButton() {
-  const buttonRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const queryClient = useQueryClient()
+  const tokenClientRef = useRef<GoogleTokenClient | null>(null)
   const [googleReady, setGoogleReady] = useState(
-    () => typeof window !== 'undefined' && Boolean(window.google?.accounts?.id)
+    () => typeof window !== 'undefined' && Boolean(window.google?.accounts?.oauth2)
   )
+  const [loading, setLoading] = useState(false)
 
-  // next/script onLoad may not fire again on client-side nav, so detect
-  // the Google library directly instead.
   useEffect(() => {
     if (googleReady) return
     const interval = window.setInterval(() => {
-      if (window.google?.accounts?.id) {
+      if (window.google?.accounts?.oauth2) {
         setGoogleReady(true)
         window.clearInterval(interval)
       }
@@ -51,58 +62,79 @@ export default function GoogleSignInButton() {
     }
   }, [googleReady])
 
-  useEffect(() => {
-    if (!CLIENT_ID || !googleReady || !buttonRef.current || !window.google) return
+  const finishSignIn = useCallback(
+    async (accessToken: string) => {
+      setLoading(true)
+      try {
+        await api.post('/api/v1/auth/google', { accessToken })
+        await queryClient.invalidateQueries({ queryKey: queryKeys.me })
+        await queryClient.invalidateQueries({ queryKey: queryKeys.listings })
+        router.push('/listings')
+      } catch (err) {
+        toast.error(apiErrorMessage(err, 'Google sign-in failed'))
+        setLoading(false)
+      }
+    },
+    [queryClient, router]
+  )
 
-    window.google.accounts.id.initialize({
+  useEffect(() => {
+    if (!CLIENT_ID || !googleReady || !window.google?.accounts?.oauth2) return
+
+    tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
-      callback: async (response) => {
-        try {
-          await api.post('/api/v1/auth/google', { credential: response.credential })
-          await queryClient.invalidateQueries({ queryKey: queryKeys.me })
-          await queryClient.invalidateQueries({ queryKey: queryKeys.listings })
-          router.push('/listings')
-        } catch (err) {
-          toast.error(apiErrorMessage(err, 'Google sign-in failed'))
+      scope: GOOGLE_SCOPES,
+      callback: (response) => {
+        if (response.error || !response.access_token) {
+          toast.error(response.error_description || 'Google sign-in was cancelled')
+          setLoading(false)
+          return
         }
+        void finishSignIn(response.access_token)
+      },
+      error_callback: (error) => {
+        if (error.type === 'popup_closed') {
+          setLoading(false)
+          return
+        }
+        toast.error(error.message || 'Google sign-in failed')
+        setLoading(false)
       },
     })
+  }, [googleReady, finishSignIn])
 
-    buttonRef.current.innerHTML = ''
-    window.google.accounts.id.renderButton(buttonRef.current, {
-      theme: 'outline',
-      size: 'large',
-      text: 'continue_with',
-      width: Math.min(400, Math.max(buttonRef.current.offsetWidth, 200)),
-    })
-  }, [googleReady, queryClient, router])
+  const handleClick = () => {
+    if (!CLIENT_ID) {
+      toast.error('Google sign-in is not configured')
+      return
+    }
+    if (!tokenClientRef.current) {
+      toast.error('Google sign-in is unavailable right now')
+      return
+    }
+    setLoading(true)
+    tokenClientRef.current.requestAccessToken({ prompt: 'select_account' })
+  }
 
   if (!CLIENT_ID) return null
 
   return (
     <>
       <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
-      <div
-        className="group relative cursor-pointer"
-        onClick={() => {
-          if (!window.google?.accounts?.id) {
-            toast.error('Google sign-in is unavailable right now')
-          }
-        }}
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={loading || !googleReady}
+        className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-[#DCD8E8] bg-white text-sm font-medium text-[#0F0F0F] transition-colors hover:bg-[#FAFAFA] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <div
-          aria-hidden="true"
-          className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-[#DCD8E8] bg-white text-sm font-medium text-[#0F0F0F] transition-colors group-hover:bg-[#FAFAFA]"
-        >
-          <GoogleLogo />
-          Continue with Google
-        </div>
-        {/* Invisible real Google button on top handles the click */}
-        <div ref={buttonRef} className="google-btn-overlay absolute inset-0 opacity-0" />
-      </div>
+        <GoogleLogo />
+        {loading ? 'Signing in…' : 'Continue with Google'}
+      </button>
       <div className="my-4 flex items-center gap-3">
         <div className="h-px flex-1 bg-[#DCD8E8]" />
-        <span className="text-xs uppercase tracking-wide text-[#6B6879]">or continue with email</span>
+        <span className="text-xs uppercase tracking-wide text-[#6B6879]">
+          or continue with email
+        </span>
         <div className="h-px flex-1 bg-[#DCD8E8]" />
       </div>
     </>

@@ -15,9 +15,14 @@ export const signinSchema = z.object({
   password: z.string().min(1, "Password is required"),
 })
 
-export const googleSchema = z.object({
-  credential: z.string().min(10, "Missing Google credential"),
-})
+export const googleSchema = z
+  .object({
+    accessToken: z.string().min(10).optional(),
+    credential: z.string().min(10).optional(),
+  })
+  .refine((v) => Boolean(v.accessToken || v.credential), {
+    message: "Missing Google credential",
+  })
 
 const tagsField = z
   .array(z.string().min(1))

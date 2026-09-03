@@ -217,14 +217,6 @@
   border-bottom: 0;
 }
 
-/* Lets the invisible Google button fill its custom-styled wrapper */
-.google-btn-overlay,
-.google-btn-overlay > div,
-.google-btn-overlay iframe {
-  width: 100% !important;
-  height: 100% !important;
-}
-
 .group:hover .icon-draw :is(path, circle, line, polyline, rect, polygon, ellipse) {
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
