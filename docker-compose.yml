@@ -22,9 +22,24 @@ services:
       DATABASE_URL: postgresql://showhunt:showhunt@db:5432/showhunt
       JWT_SECRET: change-me-in-production
       FRONTEND_URL: http://localhost:3000
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
     command: sh -c "bunx prisma migrate deploy && bun src/index.ts"
     depends_on:
       - db
+
+  voice:
+    build:
+      context: .
+      dockerfile: apps/voice/Dockerfile
+    ports:
+      - "7860:7860"
+    environment:
+      FRONTEND_URL: http://localhost:3000
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      VOICE_PORT: 7860
+    depends_on:
+      - web
 
   web:
     build:
@@ -32,6 +47,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:4000
+        NEXT_PUBLIC_VOICE_URL: http://localhost:7860
     ports:
       - "3000:3000"
     depends_on:

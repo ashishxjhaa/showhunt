@@ -23,15 +23,33 @@ interface MyListingCardProps {
     onEdit: (listing: Listing) => void
     onDelete: (id: string) => void
     deleting?: boolean
+    /** Controlled delete dialog; when set with onDeleteOpenChange, parent owns open state. */
+    deleteOpen?: boolean
+    onDeleteOpenChange?: (open: boolean) => void
+    confirmText?: string
+    onConfirmTextChange?: (text: string) => void
 }
 
 const actionButtonClass =
     "flex h-9 w-9 items-center justify-center rounded-[8px] border border-[var(--paper-border)] text-[var(--paper-muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DA5CC7]/40"
 
-export default function MyListingCard({ listing, onEdit, onDelete, deleting }: MyListingCardProps) {
+export default function MyListingCard({
+    listing,
+    onEdit,
+    onDelete,
+    deleting,
+    deleteOpen: deleteOpenProp,
+    onDeleteOpenChange,
+    confirmText: confirmTextProp,
+    onConfirmTextChange,
+}: MyListingCardProps) {
     const router = useRouter()
-    const [deleteOpen, setDeleteOpen] = useState(false)
-    const [confirmText, setConfirmText] = useState("")
+    const [deleteOpenLocal, setDeleteOpenLocal] = useState(false)
+    const [confirmTextLocal, setConfirmTextLocal] = useState("")
+
+    const controlled = onDeleteOpenChange != null
+    const deleteOpen = controlled ? Boolean(deleteOpenProp) : deleteOpenLocal
+    const confirmText = onConfirmTextChange != null ? (confirmTextProp ?? "") : confirmTextLocal
 
     const createdLabel = listing.createdAt
         ? new Date(listing.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -40,11 +58,20 @@ export default function MyListingCard({ listing, onEdit, onDelete, deleting }: M
     const matches = confirmText.trim() === listing.name
 
     const handleOpenChange = (open: boolean) => {
-        setDeleteOpen(open)
+        if (controlled) {
+            onDeleteOpenChange?.(open)
+        } else {
+            setDeleteOpenLocal(open)
+            if (!open) setConfirmTextLocal("")
+        }
         if (!open) {
-            setConfirmText("")
             suppressListingNav()
         }
+    }
+
+    const setConfirmText = (text: string) => {
+        if (onConfirmTextChange) onConfirmTextChange(text)
+        else setConfirmTextLocal(text)
     }
 
     return (
@@ -118,7 +145,7 @@ export default function MyListingCard({ listing, onEdit, onDelete, deleting }: M
                     </button>
                     <button
                         type="button"
-                        onClick={() => setDeleteOpen(true)}
+                        onClick={() => handleOpenChange(true)}
                         aria-label={`Delete ${listing.name}`}
                         title="Delete listing"
                         className={`${actionButtonClass} cursor-pointer hover:border-red-200 hover:bg-red-50 hover:text-red-600`}
@@ -147,7 +174,7 @@ export default function MyListingCard({ listing, onEdit, onDelete, deleting }: M
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label htmlFor="delete-confirm" className="text-sm text-[var(--paper-muted)]">
+                        <label htmlFor={`delete-confirm-${listing.id}`} className="text-sm text-[var(--paper-muted)]">
                             Type{" "}
                             <span className="font-semibold text-[var(--paper-ink)]">
                                 {listing.name}
@@ -155,7 +182,7 @@ export default function MyListingCard({ listing, onEdit, onDelete, deleting }: M
                             to confirm
                         </label>
                         <Input
-                            id="delete-confirm"
+                            id={`delete-confirm-${listing.id}`}
                             type="text"
                             value={confirmText}
                             onChange={(e) => setConfirmText(e.target.value)}

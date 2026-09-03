@@ -9,6 +9,7 @@
     "typecheck": "turbo typecheck",
     "web:dev": "bun run --cwd apps/web dev",
     "server:dev": "bun run --cwd apps/server dev",
+    "voice:dev": "cd apps/voice && uv run python server.py --host 0.0.0.0 --port 7860",
     "db:migrate": "bun run --cwd apps/server db:migrate"
   },
   "devDependencies": {

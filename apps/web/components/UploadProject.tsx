@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 import {
     Check,
@@ -41,6 +41,8 @@ import { authFieldClass, authTextareaClass } from '@/lib/auth-field'
 import { apiErrorMessage } from '@/lib/api'
 import { suppressListingNav } from '@/lib/suppress-listing-nav'
 import { cn } from '@/lib/utils'
+import { useVoiceSite } from '@/components/voice/VoiceSiteContext'
+import { looksLikeUrl, normalizeVoiceUrl } from '@/lib/voice/normalize-url'
 
 const FALLBACK_TAGS = [
     'SaaS', 'Productivity', 'AI', 'Fintech', 'E-commerce', 'Open Source',
@@ -84,6 +86,8 @@ interface UploadProjectProps {
     trigger?: ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    // When false, this instance does not own voice handlers.
+    voiceEnabled?: boolean
 }
 
 function newRowId() {
@@ -94,7 +98,131 @@ function isValidUrl(value: string) {
     return /^https?:\/\/.+\..+/.test(value.trim())
 }
 
-export default function UploadProject({ listing, trigger, open: openProp, onOpenChange }: UploadProjectProps) {
+type FormVoiceApi = {
+    fill: (fields: Record<string, unknown>) => void
+    enrich: (url: string) => Promise<string>
+    submit: () => Promise<string>
+    next: () => Promise<string>
+    prev: () => Promise<string>
+    goto: (step: string | number) => Promise<string>
+    setSocialLink: (fields: {
+        platform?: string
+        url?: string
+        index?: string
+    }) => Promise<string>
+    removeSocialLink: (query: string) => Promise<string>
+}
+
+function platformLabel(value: PlatformValue | ''): string {
+    if (!value) return 'Custom'
+    return PLATFORM_OPTIONS.find((o) => o.value === value)?.label ?? value
+}
+
+function resolvePlatformValue(raw: string): PlatformValue | null {
+    const q = raw
+        .trim()
+        .toLowerCase()
+        .replace(/[_\-]+/g, ' ')
+        .replace(/\b(the|a|an|link|social|platform|row|one)\b/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    if (!q) return null
+
+    const aliases: Record<string, PlatformValue> = {
+        github: 'GITHUB',
+        gh: 'GITHUB',
+        twitter: 'X_TWITTER',
+        x: 'X_TWITTER',
+        'x twitter': 'X_TWITTER',
+        'twitter x': 'X_TWITTER',
+        'product hunt': 'PRODUCT_HUNT',
+        producthunt: 'PRODUCT_HUNT',
+        ph: 'PRODUCT_HUNT',
+        youtube: 'YOUTUBE',
+        yt: 'YOUTUBE',
+        'play store': 'PLAY_STORE',
+        playstore: 'PLAY_STORE',
+        'google play': 'PLAY_STORE',
+        'app store': 'APP_STORE',
+        appstore: 'APP_STORE',
+        ios: 'APP_STORE',
+        other: 'OTHER',
+        custom: 'OTHER',
+    }
+    if (aliases[q]) return aliases[q]!
+
+    for (const opt of PLATFORM_OPTIONS) {
+        const label = opt.label.toLowerCase()
+        if (label === q || label.includes(q) || q.includes(label)) return opt.value
+        if (opt.value.toLowerCase().replace(/_/g, ' ') === q) return opt.value
+    }
+    return null
+}
+
+function resolveSocialRowIndex(rows: SocialRow[], query: string): number | null {
+    if (rows.length === 0) return null
+    const raw = query.trim().toLowerCase()
+    if (!raw) return rows.length - 1
+
+    const cleaned = raw
+        .replace(/\b(the|a|an|link|social|row|one|which is|that is|remove|delete)\b/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+    const platform = resolvePlatformValue(cleaned) ?? resolvePlatformValue(raw)
+    if (platform) {
+        const byPlatform = rows.findIndex((r) => r.platform === platform)
+        if (byPlatform >= 0) return byPlatform
+    }
+
+    if (
+        cleaned === 'last' ||
+        cleaned.endsWith(' last') ||
+        raw.includes('last') ||
+        cleaned === 'latest'
+    ) {
+        return rows.length - 1
+    }
+
+    if (cleaned === 'first' || cleaned === '1st' || cleaned === '1') return 0
+    if (cleaned === 'second' || cleaned === '2nd' || cleaned === '2') return 1
+    if (cleaned === 'third' || cleaned === '3rd' || cleaned === '3') return 2
+    if (cleaned === 'fourth' || cleaned === '4th' || cleaned === '4') return 3
+    if (cleaned === 'fifth' || cleaned === '5th' || cleaned === '5') return 4
+    if (cleaned === 'sixth' || cleaned === '6th' || cleaned === '6') return 5
+
+    if (/^\d+$/.test(cleaned)) {
+        const n = Number(cleaned)
+        if (n >= 1 && n <= rows.length) return n - 1
+        if (n >= 0 && n < rows.length) return n
+    }
+
+    return null
+}
+
+function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function waitForFormApi(
+    ref: React.MutableRefObject<FormVoiceApi | null>,
+    timeoutMs = 4000
+): Promise<FormVoiceApi | null> {
+    const start = Date.now()
+    while (Date.now() - start < timeoutMs) {
+        if (ref.current) return ref.current
+        await sleep(50)
+    }
+    return null
+}
+
+export default function UploadProject({
+    listing,
+    trigger,
+    open: openProp,
+    onOpenChange,
+    voiceEnabled = true,
+}: UploadProjectProps) {
     const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
     const isControlled = openProp !== undefined
     const open = isControlled ? !!openProp : uncontrolledOpen
@@ -106,6 +234,106 @@ export default function UploadProject({ listing, trigger, open: openProp, onOpen
         },
         [isControlled, onOpenChange]
     )
+    const { patchSnapshot, registerHandlers } = useVoiceSite()
+    const formApiRef = useRef<FormVoiceApi | null>(null)
+    const pendingFillRef = useRef<Record<string, unknown> | null>(null)
+
+    useEffect(() => {
+        patchSnapshot({
+            uploadOpen: open,
+            ...(open
+                ? {}
+                : { uploadStep: 0, uploadStepKey: null, uploadSocialLinks: [] }),
+        })
+    }, [open, patchSnapshot])
+
+    useEffect(() => {
+        if (!voiceEnabled) return
+        // Edit drawer only owns voice while open.
+        if (listing && !open) return
+
+        const ensureForm = async () => {
+            setOpen(true)
+            const api = await waitForFormApi(formApiRef)
+            return api
+        }
+
+        const shared = {
+            fillListing: async (fields: {
+                name?: string
+                description?: string
+                link?: string
+                tags?: string[]
+                repoUrl?: string
+                isOpenSource?: boolean
+            }) => {
+                pendingFillRef.current = fields as Record<string, unknown>
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                const payload = pendingFillRef.current ?? (fields as Record<string, unknown>)
+                pendingFillRef.current = null
+                api.fill(payload)
+                const link =
+                    typeof payload.link === 'string' && payload.link
+                        ? ` Set live link to ${payload.link}.`
+                        : ''
+                return `Filled listing fields.${link}`
+            },
+            enrichFromUrl: async (url: string) => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.enrich(url)
+            },
+            uploadNext: async () => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.next()
+            },
+            uploadPrevious: async () => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.prev()
+            },
+            uploadGotoStep: async (step: string) => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.goto(step)
+            },
+            setUploadLink: async (fields: {
+                platform?: string
+                url?: string
+                index?: string
+            }) => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.setSocialLink(fields)
+            },
+            removeUploadLink: async (query: string) => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.removeSocialLink(query)
+            },
+            submitListing: async () => {
+                const api = await ensureForm()
+                if (!api) return 'Upload form did not load in time'
+                return api.submit()
+            },
+        }
+
+        if (listing) {
+            return registerHandlers(shared)
+        }
+
+        return registerHandlers({
+            openUpload: async () => {
+                setOpen(true)
+                const api = await waitForFormApi(formApiRef)
+                if (!api) return 'Opened upload, but the form is still loading'
+                return 'Opened the upload drawer'
+            },
+            ...shared,
+        })
+    }, [voiceEnabled, listing, open, registerHandlers, setOpen])
 
     return (
         <Drawer direction="right" open={open} onOpenChange={setOpen}>
@@ -129,11 +357,25 @@ export default function UploadProject({ listing, trigger, open: openProp, onOpen
                 <DrawerTitle className="sr-only">
                     {listing ? 'Edit project' : 'Upload project'}
                 </DrawerTitle>
-                <UploadProjectForm
-                    key={listing?.id ?? 'new'}
-                    listing={listing}
-                    onDone={() => setOpen(false)}
-                />
+                {open ? (
+                    <UploadProjectForm
+                        key={listing?.id ?? 'new'}
+                        listing={listing}
+                        onDone={() => setOpen(false)}
+                        apiRef={formApiRef}
+                        pendingFillRef={pendingFillRef}
+                        onStepChange={(index, key) => {
+                            patchSnapshot({
+                                uploadOpen: true,
+                                uploadStep: index,
+                                uploadStepKey: key,
+                            })
+                        }}
+                        onSocialLinksChange={(links) => {
+                            patchSnapshot({ uploadSocialLinks: links })
+                        }}
+                    />
+                ) : null}
             </DrawerContent>
         </Drawer>
     )
@@ -162,7 +404,23 @@ function StepProgress({ step }: { step: number }) {
     )
 }
 
-function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDone: () => void }) {
+function UploadProjectForm({
+    listing,
+    onDone,
+    apiRef,
+    pendingFillRef,
+    onStepChange,
+    onSocialLinksChange,
+}: {
+    listing?: Listing | null
+    onDone: () => void
+    apiRef?: React.MutableRefObject<FormVoiceApi | null>
+    pendingFillRef?: React.MutableRefObject<Record<string, unknown> | null>
+    onStepChange?: (index: number, key: StepKey) => void
+    onSocialLinksChange?: (
+        links: { platform: string; label: string; url: string }[]
+    ) => void
+}) {
     const isEdit = !!listing
     const [step, setStep] = useState(0)
     const [aiUsed, setAiUsed] = useState(false)
@@ -386,12 +644,41 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
         return true
     }
 
-    const goNext = () => {
-        if (!validateStep(step)) return
+    const goNext = (): boolean => {
+        if (!validateStep(step)) return false
         setStep((s) => Math.min(s + 1, STEPS.length - 1))
+        return true
     }
 
     const goPrev = () => setStep((s) => Math.max(s - 1, 0))
+
+    const resolveStepIndex = (value: string | number): number | null => {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            const n = Math.trunc(value)
+            if (n >= 0 && n < STEPS.length) return n
+            if (n >= 1 && n <= STEPS.length) return n - 1
+            return null
+        }
+        const raw = String(value).trim().toLowerCase()
+        if (!raw) return null
+        if (/^\d+$/.test(raw)) return resolveStepIndex(Number(raw))
+        const byKey = STEPS.findIndex((s) => s.key === raw || s.label.toLowerCase() === raw)
+        return byKey >= 0 ? byKey : null
+    }
+
+    useEffect(() => {
+        onStepChange?.(step, STEPS[step].key)
+    }, [step, onStepChange])
+
+    useEffect(() => {
+        onSocialLinksChange?.(
+            socialRows.map((r) => ({
+                platform: r.platform || 'OTHER',
+                label: platformLabel(r.platform),
+                url: r.url,
+            }))
+        )
+    }, [socialRows, onSocialLinksChange])
 
     const handleSubmit = async () => {
         if (!validateStep(0) || !validateStep(1) || !validateStep(2) || !validateStep(3)) {
@@ -435,6 +722,178 @@ function UploadProjectForm({ listing, onDone }: { listing?: Listing | null; onDo
             toast.error(apiErrorMessage(err, isEdit ? 'Failed to update project' : 'Failed to upload project'))
         }
     }
+
+    useEffect(() => {
+        if (!apiRef) return
+
+        const applyFill = (fields: Record<string, unknown>) => {
+            if (typeof fields.name === 'string' && fields.name) setName(fields.name)
+            if (typeof fields.description === 'string' && fields.description) {
+                setDescription(fields.description)
+            }
+            if (typeof fields.link === 'string' && fields.link) setLink(fields.link)
+            if (Array.isArray(fields.tags)) {
+                setSelectedTags(
+                    fields.tags.filter((t): t is string => typeof t === 'string').slice(0, 3)
+                )
+            }
+            if (typeof fields.repoUrl === 'string' && fields.repoUrl) {
+                setRepoUrl(fields.repoUrl)
+                setIsOpenSource(true)
+            }
+            if (typeof fields.isOpenSource === 'boolean') {
+                setIsOpenSource(fields.isOpenSource)
+            }
+            setStep(0)
+        }
+
+        apiRef.current = {
+            fill: applyFill,
+            enrich: async (url) => {
+                const nextUrl = url.trim()
+                if (nextUrl) setLink(nextUrl)
+                const live = (nextUrl || link).trim()
+                if (!live) return 'Add a live link first'
+                if (!isValidUrl(live)) {
+                    return 'Live link must be a full URL starting with https://'
+                }
+                try {
+                    const metadata = await enrich.mutateAsync(live)
+                    setName(metadata.name)
+                    setDescription(metadata.description)
+                    setAiUsed(true)
+                    setStep(0)
+                    return `Filled name and description from ${live}`
+                } catch (err) {
+                    return apiErrorMessage(err, 'Could not enrich from that URL')
+                }
+            },
+            next: async () => {
+                if (step >= STEPS.length - 1) {
+                    return 'Already on the last step. Say publish to upload.'
+                }
+                if (!validateStep(step)) {
+                    return `Cannot go next yet. Fix the ${STEPS[step].label} step first.`
+                }
+                setStep((s) => Math.min(s + 1, STEPS.length - 1))
+                const next = Math.min(step + 1, STEPS.length - 1)
+                return `Moved to ${STEPS[next].label}`
+            },
+            prev: async () => {
+                if (step <= 0) return 'Already on the first step'
+                setStep((s) => Math.max(s - 1, 0))
+                const prev = Math.max(step - 1, 0)
+                return `Moved to ${STEPS[prev].label}`
+            },
+            goto: async (value) => {
+                const index = resolveStepIndex(value)
+                if (index == null) {
+                    return 'Unknown step. Use basics, media, links, or tags.'
+                }
+                setStep(index)
+                return `Moved to ${STEPS[index].label}`
+            },
+            setSocialLink: async (fields) => {
+                setStep(2)
+                const platformRaw =
+                    typeof fields.platform === 'string' ? fields.platform.trim() : ''
+                const indexRaw =
+                    typeof fields.index === 'string' ? fields.index.trim() : ''
+                const urlRaw = typeof fields.url === 'string' ? fields.url.trim() : ''
+                const url = urlRaw ? normalizeVoiceUrl(urlRaw) : ''
+
+                if (url && !looksLikeUrl(url)) {
+                    return `Could not turn that into a URL: ${urlRaw}`
+                }
+
+                const platform =
+                    (platformRaw ? resolvePlatformValue(platformRaw) : null) ??
+                    (indexRaw ? resolvePlatformValue(indexRaw) : null)
+
+                let targetIndex: number | null = null
+                if (platform) {
+                    targetIndex = socialRows.findIndex((r) => r.platform === platform)
+                }
+                if (targetIndex == null || targetIndex < 0) {
+                    targetIndex = resolveSocialRowIndex(
+                        socialRows,
+                        indexRaw || platformRaw || 'last'
+                    )
+                }
+
+                if (targetIndex != null && targetIndex >= 0 && targetIndex < socialRows.length) {
+                    setSocialRows((prev) =>
+                        prev.map((r, i) =>
+                            i === targetIndex
+                                ? {
+                                      ...r,
+                                      ...(platform ? { platform } : {}),
+                                      ...(url ? { url } : {}),
+                                  }
+                                : r
+                        )
+                    )
+                    const label = platform
+                        ? platformLabel(platform)
+                        : platformLabel(socialRows[targetIndex]!.platform)
+                    return url
+                        ? `Updated ${label} link to ${url}`
+                        : `Updated ${label} link`
+                }
+
+                if (socialRows.length >= MAX_LINKS) {
+                    return `Up to ${MAX_LINKS} social links allowed`
+                }
+                if (!platform) {
+                    return 'Say which platform, like Product Hunt, YouTube, or GitHub'
+                }
+                if (!url) {
+                    return 'Say the URL for that social link'
+                }
+                setSocialRows((prev) => [
+                    ...prev,
+                    { id: newRowId(), platform, url },
+                ])
+                return `Added ${platformLabel(platform)} link ${url}`
+            },
+            removeSocialLink: async (query) => {
+                setStep(2)
+                if (socialRows.length === 0) {
+                    return 'There are no social links to remove'
+                }
+                const index = resolveSocialRowIndex(socialRows, query)
+                if (index == null || index < 0 || index >= socialRows.length) {
+                    const available = socialRows
+                        .map((r, i) => `${i + 1}: ${platformLabel(r.platform)}`)
+                        .join(', ')
+                    return `Could not find that link. Available: ${available}`
+                }
+                const removed = socialRows[index]!
+                const label = platformLabel(removed.platform)
+                setSocialRows((prev) => prev.filter((_, i) => i !== index))
+                return `Removed ${label} link`
+            },
+            submit: async () => {
+                if (!validateStep(0) || !validateStep(1) || !validateStep(2) || !validateStep(3)) {
+                    if (overLimit) setStep(0)
+                    else if (!logo) setStep(1)
+                    else if (selectedTags.length === 0) setStep(3)
+                    return 'Cannot publish yet. Complete the required fields first.'
+                }
+                await handleSubmit()
+                return isEdit ? 'Saved the project' : 'Published the project'
+            },
+        }
+
+        if (pendingFillRef?.current) {
+            applyFill(pendingFillRef.current)
+            pendingFillRef.current = null
+        }
+
+        return () => {
+            if (apiRef) apiRef.current = null
+        }
+    })
 
     const submitting =
         uploadListing.isPending ||

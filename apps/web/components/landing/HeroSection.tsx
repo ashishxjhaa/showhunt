@@ -31,7 +31,7 @@ const heroListings = [
 
 export default function HeroSection() {
   return (
-    <section className="relative flex min-h-screen items-center overflow-hidden pt-28 pb-16 sm:pb-20">
+    <section id="hero" className="relative flex min-h-screen items-center overflow-hidden pt-28 pb-16 sm:pb-20">
       {/* Pink gradient beam background */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-full sm:w-[65%]">
         <div className="absolute right-[-15%] top-[-25%] h-[150%] w-[85%] rotate-[20deg] bg-gradient-to-b from-[#F770E3]/45 via-[#DA5CC7]/22 to-transparent blur-2xl" />

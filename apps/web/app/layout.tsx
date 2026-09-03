@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { VoiceSiteProvider } from "@/components/voice/VoiceSiteContext";
+import { VoiceProvider } from "@/components/voice/VoiceProvider";
+import VoiceRouteSync from "@/components/voice/VoiceRouteSync";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "sonner";
 
@@ -21,8 +24,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={GeistSans.className}>
         <QueryProvider>
-          {children}
-          <Toaster position="bottom-right" />
+          <VoiceSiteProvider>
+            <VoiceProvider>
+              <VoiceRouteSync />
+              {children}
+              <Toaster position="top-right" richColors closeButton />
+            </VoiceProvider>
+          </VoiceSiteProvider>
         </QueryProvider>
       </body>
     </html>

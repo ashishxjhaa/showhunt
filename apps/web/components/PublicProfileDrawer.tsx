@@ -14,6 +14,7 @@ import { normalizeUsername, RESERVED_USERNAMES, USERNAME_PATTERN } from '@/lib/u
 import { useUpdatePublicProfile } from '@/lib/queries/mutations'
 import type { User } from '@/lib/queries/types'
 import { cn } from '@/lib/utils'
+import { useVoiceSite } from '@/components/voice/VoiceSiteContext'
 
 const BIO_MAX = 280
 
@@ -270,6 +271,7 @@ export default function PublicProfileDrawer({
     const [techStack, setTechStack] = useState<string[]>([])
     const bioRemaining = BIO_MAX - bio.length
     const bioOverLimit = bioRemaining < 0
+    const { registerHandlers, patchSnapshot } = useVoiceSite()
 
     useEffect(() => {
         if (!open) return
@@ -282,6 +284,27 @@ export default function PublicProfileDrawer({
         setState(user.state ?? '')
         setTechStack(user.techStack ?? [])
     }, [open, user])
+
+    useEffect(() => {
+        patchSnapshot({ profileEditorOpen: open })
+    }, [open, patchSnapshot])
+
+    useEffect(() => {
+        if (!open) return
+        return registerHandlers({
+            fillProfile: (fields) => {
+                if (fields.username) setUsername(fields.username)
+                if (fields.bio) setBio(fields.bio)
+                if (fields.twitterUrl) setTwitterUrl(fields.twitterUrl)
+                if (fields.githubUrl) setGithubUrl(fields.githubUrl)
+                if (fields.portfolioUrl) setPortfolioUrl(fields.portfolioUrl)
+                if (fields.linkedinUrl) setLinkedinUrl(fields.linkedinUrl)
+                if (fields.state) setState(fields.state)
+                if (fields.techStack) setTechStack(fields.techStack)
+                return 'Filled profile fields'
+            },
+        })
+    }, [open, registerHandlers])
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()

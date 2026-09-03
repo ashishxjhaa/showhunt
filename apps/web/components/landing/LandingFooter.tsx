@@ -48,7 +48,7 @@ const columns = [
 
 export default function LandingFooter() {
   return (
-    <footer className="bg-[var(--paper-surface)]">
+    <footer id="footer" className="bg-[var(--paper-surface)]">
       <div className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-10 sm:py-16">
         <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           <div>

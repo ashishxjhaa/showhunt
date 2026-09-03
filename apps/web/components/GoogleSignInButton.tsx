@@ -61,7 +61,6 @@ export default function GoogleSignInButton() {
           await api.post('/api/v1/auth/google', { credential: response.credential })
           await queryClient.invalidateQueries({ queryKey: queryKeys.me })
           await queryClient.invalidateQueries({ queryKey: queryKeys.listings })
-          toast.success('Signed in with Google 🎉')
           router.push('/listings')
         } catch (err) {
           toast.error(apiErrorMessage(err, 'Google sign-in failed'))

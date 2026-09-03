@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useListings, useTags } from "@/lib/queries/hooks"
@@ -18,10 +18,12 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import { useVoiceSite } from "@/components/voice/VoiceSiteContext"
 
 interface ListingsPageProps {
     searchQuery: string
     isAuthenticated: boolean
+    onSearchChange?: (value: string) => void
 }
 
 function buildPageItems(current: number, total: number): (number | "ellipsis")[] {
@@ -43,11 +45,14 @@ function buildPageItems(current: number, total: number): (number | "ellipsis")[]
     return items
 }
 
-const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
+const ListingsPage = ({ searchQuery, isAuthenticated, onSearchChange }: ListingsPageProps) => {
     const router = useRouter()
     const [activeTag, setActiveTag] = useState<string | null>(null)
     const [page, setPage] = useState(1)
     const [debouncedQuery, setDebouncedQuery] = useState(searchQuery)
+    const { patchSnapshot, registerHandlers } = useVoiceSite()
+    const onSearchChangeRef = useRef(onSearchChange)
+    onSearchChangeRef.current = onSearchChange
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
@@ -69,6 +74,61 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     const visibleListings = data?.listings ?? []
     const totalPages = data?.totalPages ?? 1
     const isFiltered = !!activeTag || !!debouncedQuery.trim()
+    const visibleListingsRef = useRef(visibleListings)
+    visibleListingsRef.current = visibleListings
+    const upvoteRef = useRef(upvote)
+    upvoteRef.current = upvote
+    const totalPagesRef = useRef(totalPages)
+    totalPagesRef.current = totalPages
+
+    useEffect(() => {
+        patchSnapshot({
+            listingsSearch: searchQuery,
+            listingsTag: activeTag,
+            listingsPage: page,
+            listingsTotalPages: totalPages,
+            visibleListings: visibleListings.map((l) => ({
+                id: l.id,
+                name: l.name,
+                builderName: l.user?.fullName ?? "Unknown",
+                builderUsername: l.user?.username ?? null,
+            })),
+            listingDetail: null,
+        })
+    }, [searchQuery, activeTag, page, totalPages, visibleListings, patchSnapshot])
+
+    useEffect(() => {
+        return registerHandlers({
+            setListingsSearch: (q) => {
+                onSearchChangeRef.current?.(q)
+                return q ? `Searching for ${q}` : "Cleared search"
+            },
+            setListingsTag: (tag) => {
+                setActiveTag(tag)
+                setPage(1)
+                return tag ? `Filtering by ${tag}` : "Cleared tag filter"
+            },
+            setListingsPage: (p) => {
+                setPage((current) => {
+                    const max = totalPagesRef.current
+                    if (p === "next") return Math.min(max, current + 1)
+                    if (p === "prev") return Math.max(1, current - 1)
+                    return Math.min(max, Math.max(1, Number(p)))
+                })
+                return `Moved to page ${p}`
+            },
+            upvoteListing: async (id) => {
+                if (!isAuthenticated) {
+                    router.push("/signin")
+                    return "Please sign in to upvote"
+                }
+                const target = id ?? visibleListingsRef.current[0]?.id
+                if (!target) return "No listing to upvote"
+                upvoteRef.current.mutate(target)
+                return "Upvoted"
+            },
+        })
+    }, [registerHandlers, isAuthenticated, router])
 
     const handleRequireAuth = () => {
         toast.error("Please log in to upvote listings")
@@ -76,7 +136,7 @@ const ListingsPage = ({ searchQuery, isAuthenticated }: ListingsPageProps) => {
     }
 
     return (
-        <div className="px-5 pb-8 pt-4 sm:px-8 sm:pb-10 sm:pt-5">
+        <div id="listings" className="px-5 pb-8 pt-4 sm:px-8 sm:pb-10 sm:pt-5">
             <div className="mb-6 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {[null, ...(curatedTags ?? [])].map((tag) => (
                     <button

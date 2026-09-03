@@ -42,7 +42,6 @@ export default function AppNavbar({ search = "", onSearchChange, showSearch = fa
   const logout = useLogout()
 
   const handleLogout = () => {
-    toast.success("Logged out")
     logout.mutate(undefined, {
       onSettled: () => router.push("/"),
     })

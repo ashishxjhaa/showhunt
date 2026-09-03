@@ -3,6 +3,7 @@
 import { useState } from "react"
 import AppShell from "@/components/AppShell"
 import ListingsPage from "@/components/ListingsPage"
+import UploadProject from "@/components/UploadProject"
 import { useMe } from "@/lib/queries/hooks"
 
 const Listings = () => {
@@ -11,7 +12,12 @@ const Listings = () => {
 
   return (
     <AppShell search={search} onSearchChange={setSearch} showSearch>
-      <ListingsPage searchQuery={search} isAuthenticated={isFetched && !!user} />
+      <ListingsPage
+        searchQuery={search}
+        isAuthenticated={isFetched && !!user}
+        onSearchChange={setSearch}
+      />
+      {isFetched && user ? <UploadProject trigger={null} /> : null}
     </AppShell>
   )
 }

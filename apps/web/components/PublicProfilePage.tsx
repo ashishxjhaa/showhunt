@@ -27,8 +27,10 @@ import { useMe, useBuildersMap, usePublicUser } from '@/lib/queries/hooks'
 import { useListingsMutations } from '@/lib/queries/mutations'
 import { queryKeys } from '@/lib/queries/keys'
 import { normalizeUsername } from '@/lib/username'
+import { indiaStateName } from '@/lib/india-states'
 import type { PublicUser } from '@/lib/queries/types'
 import { cn } from '@/lib/utils'
+import { useVoiceSite } from '@/components/voice/VoiceSiteContext'
 
 type ProjectsView = 'grid' | 'list'
 
@@ -226,6 +228,7 @@ export default function PublicProfilePage() {
     const { upvote } = useListingsMutations(queryKeys.publicUser(username))
     const [profileOpen, setProfileOpen] = useState(false)
     const [projectsView, setProjectsView] = useState<ProjectsView>('grid')
+    const { patchSnapshot, registerHandlers } = useVoiceSite()
 
     const isOwner =
         !!me?.username && !!username && me.username === username
@@ -242,6 +245,38 @@ export default function PublicProfilePage() {
             // ignore storage errors
         }
     }, [])
+
+    useEffect(() => {
+        if (!data?.user) return
+        patchSnapshot({
+            profile: {
+                username: data.user.username,
+                fullName: data.user.fullName,
+                isOwn: isOwner,
+                state: data.user.state ?? null,
+                stateName: indiaStateName(data.user.state),
+                bio: data.user.bio ?? null,
+                techStack: data.user.techStack ?? [],
+            },
+            profileEditorOpen: profileOpen,
+            visibleListings: data.listings.map((l) => ({
+                id: l.id,
+                name: l.name,
+                builderName: data.user.fullName,
+                builderUsername: data.user.username,
+            })),
+        })
+    }, [data, isOwner, profileOpen, patchSnapshot])
+
+    useEffect(() => {
+        if (!isOwner) return
+        return registerHandlers({
+            openProfileEditor: () => {
+                setProfileOpen(true)
+                return 'Opened the profile editor'
+            },
+        })
+    }, [isOwner, registerHandlers])
 
     const changeProjectsView = (view: ProjectsView) => {
         setProjectsView(view)
@@ -333,7 +368,7 @@ export default function PublicProfilePage() {
                         </div>
                     </div>
 
-                    <div className="py-8 sm:py-10">
+                    <div id="listings" className="py-8 sm:py-10">
                         <ProjectsViewToggle
                             isGrid={isGrid}
                             onChange={changeProjectsView}

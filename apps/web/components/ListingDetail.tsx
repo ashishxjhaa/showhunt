@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { useMemo, useState, type ComponentType, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type ComponentType, type FormEvent } from "react"
 import { toast } from "sonner"
 import {
     Apple,
@@ -32,6 +32,7 @@ import { useComments, useListing, useMe, useSimilarListings } from "@/lib/querie
 import { useCreateComment, useListingUpvote } from "@/lib/queries/mutations"
 import type { Listing, ListingComment } from "@/lib/queries/types"
 import { cn } from "@/lib/utils"
+import { useVoiceSite } from "@/components/voice/VoiceSiteContext"
 
 const COMMENT_MAX = 500
 
@@ -244,8 +245,49 @@ function CommentComposer({
 }) {
     const [content, setContent] = useState("")
     const createComment = useCreateComment(listingId)
+    const { patchSnapshot, registerHandlers } = useVoiceSite()
     const remaining = COMMENT_MAX - content.length
     const overLimit = remaining < 0
+    const contentRef = useRef(content)
+    contentRef.current = content
+    const userRef = useRef(user)
+    userRef.current = user
+    const createCommentRef = useRef(createComment)
+    createCommentRef.current = createComment
+    const onRequireAuthRef = useRef(onRequireAuth)
+    onRequireAuthRef.current = onRequireAuth
+
+    useEffect(() => {
+        patchSnapshot({ commentDraft: content })
+    }, [content, patchSnapshot])
+
+    useEffect(() => {
+        return registerHandlers({
+            fillComment: (text) => {
+                const next = text.slice(0, COMMENT_MAX)
+                setContent(next)
+                return "Filled the comment"
+            },
+            submitComment: async () => {
+                if (!userRef.current) {
+                    onRequireAuthRef.current()
+                    return "Please sign in to comment"
+                }
+                const trimmed = contentRef.current.trim()
+                if (!trimmed) return "Write a comment first"
+                if (trimmed.length > COMMENT_MAX) {
+                    return `Comment is too long. Keep it under ${COMMENT_MAX} characters`
+                }
+                try {
+                    await createCommentRef.current.mutateAsync(trimmed)
+                    setContent("")
+                    return "Posted the comment"
+                } catch (err) {
+                    return apiErrorMessage(err, "Failed to post comment")
+                }
+            },
+        })
+    }, [registerHandlers])
 
     const submit = async (e: FormEvent) => {
         e.preventDefault()
@@ -355,6 +397,64 @@ function ListingDetailContent({ listing }: { listing: Listing }) {
     const { data: comments, isLoading: commentsLoading } = useComments(listing.id)
     const { data: similar, isLoading: similarLoading } = useSimilarListings(listing.id)
     const upvote = useListingUpvote(listing.id)
+    const { patchSnapshot, registerHandlers } = useVoiceSite()
+
+    useEffect(() => {
+        const links = [
+            ...listing.links.map((link) => ({
+                platform: link.platform,
+                label:
+                    PLATFORM_META[link.platform]?.label ??
+                    link.platform.replaceAll("_", " "),
+                url: link.url,
+            })),
+        ]
+        if (
+            listing.repoUrl &&
+            !links.some(
+                (l) => l.platform === "GITHUB" && l.url === listing.repoUrl
+            )
+        ) {
+            links.push({
+                platform: "GITHUB",
+                label: "Repository",
+                url: listing.repoUrl,
+            })
+        }
+
+        patchSnapshot({
+            listingDetail: {
+                id: listing.id,
+                name: listing.name,
+                builderName: listing.user?.fullName ?? "Unknown",
+                builderUsername: listing.user?.username ?? null,
+                links,
+            },
+            similarListings: (similar ?? []).map((item) => ({
+                id: item.id,
+                name: item.name,
+                builderName: item.user?.fullName ?? "Unknown",
+                builderUsername: item.user?.username ?? null,
+            })),
+            visibleListings: [],
+        })
+    }, [listing, similar, patchSnapshot])
+
+    useEffect(() => {
+        return registerHandlers({
+            upvoteListing: async (id) => {
+                if (!user) {
+                    router.push("/signin")
+                    return "Please sign in to upvote"
+                }
+                if (id && id !== listing.id) {
+                    return "Open that listing first to upvote it"
+                }
+                upvote.mutate()
+                return `Upvoted ${listing.name}`
+            },
+        })
+    }, [registerHandlers, user, router, upvote, listing.id, listing.name])
 
     const requireAuth = (message: string) => {
         toast.error(message)

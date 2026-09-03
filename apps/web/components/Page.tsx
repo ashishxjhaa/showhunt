@@ -3,7 +3,7 @@
 import { Eye, LayoutGrid, List, Pencil, User, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import UploadProject from "./UploadProject"
 import AvatarPicker from "./AvatarPicker"
@@ -16,10 +16,63 @@ import MyListingCard from "./MyListingCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Listing } from "@/lib/queries/types"
 import { cn } from "@/lib/utils"
+import { useVoiceSite } from "@/components/voice/VoiceSiteContext"
+import { indiaStateName } from "@/lib/india-states"
+import { AVATAR_SEEDS, toAvatarId } from "@/lib/avatars"
 
 type ProjectsView = "grid" | "list"
 
 const PROJECTS_VIEW_KEY = "showhunt:projects-view"
+
+function ordinalIndex(value: string): number | null {
+    const v = value
+        .trim()
+        .toLowerCase()
+        .replace(/\b(the|a|an|project|listing|product|one|my)\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+    if (!v) return null
+    if (v === "first" || v === "1st" || v === "1") return 0
+    if (v === "second" || v === "2nd" || v === "2") return 1
+    if (v === "third" || v === "3rd" || v === "3") return 2
+    if (v === "fourth" || v === "4th" || v === "4") return 3
+    if (v === "fifth" || v === "5th" || v === "5") return 4
+    if (/^\d+$/.test(v)) {
+        const n = Number(v)
+        return n >= 1 ? n - 1 : null
+    }
+    return null
+}
+
+function resolveMyListing(listings: Listing[], query: string): Listing | null {
+    if (listings.length === 0) return null
+    const q = query.trim()
+    if (!q) return listings[0] ?? null
+    const byOrdinal = ordinalIndex(q)
+    if (byOrdinal != null) return listings[byOrdinal] ?? null
+    const needle = q.toLowerCase()
+    return (
+        listings.find((l) => l.name.toLowerCase() === needle) ??
+        listings.find((l) => l.name.toLowerCase().includes(needle)) ??
+        null
+    )
+}
+
+function resolveAvatarChoice(choice: string): string | null {
+    const raw = choice.trim().toLowerCase()
+    if (!raw) return null
+    const byOrdinal = ordinalIndex(raw.replace(/\b(avatar|option|one)\b/g, " ").replace(/\s+/g, " ").trim())
+    if (byOrdinal != null && byOrdinal >= 0 && byOrdinal < AVATAR_SEEDS.length) {
+        return toAvatarId(AVATAR_SEEDS[byOrdinal]!)
+    }
+    if (/^\d+$/.test(raw)) {
+        const n = Number(raw)
+        if (n >= 1 && n <= AVATAR_SEEDS.length) return toAvatarId(AVATAR_SEEDS[n - 1]!)
+        if (n >= 0 && n < AVATAR_SEEDS.length) return toAvatarId(AVATAR_SEEDS[n]!)
+    }
+    const seed = AVATAR_SEEDS.find((s) => s === raw)
+    return seed ? toAvatarId(seed) : null
+}
 
 const Page = () => {
     const { data: user, isFetched } = useMe()
@@ -30,10 +83,36 @@ const Page = () => {
     const [editOpen, setEditOpen] = useState(false)
     const [pickerOpen, setPickerOpen] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+    const [deleteConfirmText, setDeleteConfirmText] = useState("")
+    const pendingDeleteIdRef = useRef<string | null>(null)
     const [projectsView, setProjectsView] = useState<ProjectsView>("grid")
     const router = useRouter()
-    // Only treat as loading when we have no user yet — keep buttons visible on refresh if cache exists
+    const { patchSnapshot, registerHandlers } = useVoiceSite()
+    // Only treat as loading when we have no user yet. Keep buttons visible on refresh if cache exists.
     const userLoading = !isFetched && !user
+
+    const closeDeleteDialog = () => {
+        pendingDeleteIdRef.current = null
+        setPendingDeleteId(null)
+        setDeleteConfirmText("")
+    }
+
+    const openDeleteDialog = (id: string) => {
+        pendingDeleteIdRef.current = id
+        setPendingDeleteId(id)
+        setDeleteConfirmText("")
+    }
+
+    const performDelete = (id: string) => {
+        deleteListing.mutate(id, {
+            onSuccess: () => {
+                closeDeleteDialog()
+                toast.success("Listing deleted")
+            },
+            onError: () => toast.error("Could not delete listing, please try again"),
+        })
+    }
 
     useEffect(() => {
         if (isFetched && !user) {
@@ -41,6 +120,87 @@ const Page = () => {
             router.replace("/signin")
         }
     }, [isFetched, user, router])
+
+    useEffect(() => {
+        patchSnapshot({
+            profile: user
+                ? {
+                      username: user.username,
+                      fullName: user.fullName,
+                      isOwn: true,
+                      state: user.state ?? null,
+                      stateName: indiaStateName(user.state),
+                      bio: user.bio ?? null,
+                      techStack: user.techStack ?? [],
+                  }
+                : null,
+            profileEditorOpen: profileOpen,
+            visibleListings: (data?.listings ?? []).map((l) => ({
+                id: l.id,
+                name: l.name,
+                builderName: user?.fullName ?? "You",
+                builderUsername: user?.username ?? null,
+            })),
+        })
+    }, [user, profileOpen, data, patchSnapshot])
+
+    useEffect(() => {
+        return registerHandlers({
+            openProfileEditor: () => {
+                setProfileOpen(true)
+                return "Opened the profile editor"
+            },
+            editListing: (query) => {
+                const listings = data?.listings ?? []
+                if (listings.length === 0) return "You have no listings to edit"
+                const hit = resolveMyListing(listings, query)
+                if (!hit) return "Could not find that listing to edit"
+                setEditing(hit)
+                setEditOpen(true)
+                return `Opened editor for ${hit.name}`
+            },
+            deleteListing: (query) => {
+                const listings = data?.listings ?? []
+                if (listings.length === 0) return "You have no listings to delete"
+                const hit = resolveMyListing(listings, query)
+                if (!hit) return "Could not find that listing to delete"
+                openDeleteDialog(hit.id)
+                return `Opened delete confirmation for ${hit.name}. Type the project name and confirm to delete, or cancel.`
+            },
+            cancelDeleteListing: () => {
+                if (!pendingDeleteIdRef.current) return "No delete confirmation is open"
+                closeDeleteDialog()
+                return "Cancelled delete"
+            },
+            confirmDeleteListing: () => {
+                const listings = data?.listings ?? []
+                const hit = listings.find((l) => l.id === pendingDeleteIdRef.current)
+                if (!hit) return "No delete confirmation is open"
+                setDeleteConfirmText(hit.name)
+                performDelete(hit.id)
+                return `Deleting ${hit.name}`
+            },
+            openAvatarPicker: () => {
+                setPickerOpen(true)
+                return "Opened avatar picker. There are 20 options. Say set avatar 1 through 20, or a name like ember."
+            },
+            setAvatar: (choice) => {
+                const id = resolveAvatarChoice(choice)
+                if (!id) {
+                    return "Pick avatar 1 to 20, or a name like ember, volt, neon"
+                }
+                setPickerOpen(true)
+                updateAvatar.mutate(id, {
+                    onSuccess: () => {
+                        setPickerOpen(false)
+                        toast.success("Avatar updated")
+                    },
+                    onError: () => toast.error("Could not save avatar, please try again"),
+                })
+                return `Setting avatar ${choice}`
+            },
+        })
+    }, [registerHandlers, data, deleteListing, updateAvatar])
 
     useEffect(() => {
         try {
@@ -132,7 +292,7 @@ const Page = () => {
             </div>
         </div>
 
-        <div className="px-5 py-8 sm:px-8 sm:py-10">
+        <div id="listings" className="px-5 py-8 sm:px-8 sm:py-10">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 rounded-[8px] border border-[var(--paper-border)] bg-white p-1">
                     <h2 className="px-2.5 text-sm font-medium text-[var(--paper-ink)] sm:text-base">
@@ -179,7 +339,7 @@ const Page = () => {
                         </>
                     ) : (
                         <>
-                            <UploadProject />
+                            <UploadProject voiceEnabled={!editOpen} />
                             {user?.username ? (
                                 <Link
                                     href={`/u/${user.username}`}
@@ -215,16 +375,21 @@ const Page = () => {
                             key={l.id}
                             listing={l}
                             deleting={deleteListing.isPending && deleteListing.variables === l.id}
+                            deleteOpen={pendingDeleteId === l.id}
+                            onDeleteOpenChange={(open) => {
+                                if (open) {
+                                    openDeleteDialog(l.id)
+                                } else {
+                                    closeDeleteDialog()
+                                }
+                            }}
+                            confirmText={pendingDeleteId === l.id ? deleteConfirmText : ""}
+                            onConfirmTextChange={setDeleteConfirmText}
                             onEdit={(listing) => {
                                 setEditing(listing)
                                 setEditOpen(true)
                             }}
-                            onDelete={(id) =>
-                                deleteListing.mutate(id, {
-                                    onSuccess: () => toast.success("Listing deleted"),
-                                    onError: () => toast.error("Could not delete listing, please try again"),
-                                })
-                            }
+                            onDelete={performDelete}
                         />
                     ))}
                 </div>
@@ -236,7 +401,11 @@ const Page = () => {
         <UploadProject
             listing={editing}
             open={editOpen}
-            onOpenChange={setEditOpen}
+            onOpenChange={(next) => {
+                setEditOpen(next)
+                if (!next) setEditing(null)
+            }}
+            voiceEnabled={editOpen}
             trigger={null}
         />
 
