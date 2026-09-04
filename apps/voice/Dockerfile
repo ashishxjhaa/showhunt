@@ -6,14 +6,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Monorepo root as Docker build context (Railway default).
-COPY apps/voice/pyproject.toml /app/pyproject.toml
+# Railway build context = directory of this Dockerfile (apps/voice).
+COPY pyproject.toml ./
 RUN pip install --no-cache-dir .
 
-COPY apps/voice/ /app/
-RUN chmod +x /app/entrypoint.sh
+COPY . .
+RUN chmod +x entrypoint.sh
 
 ENV PORT=7860
 EXPOSE 7860
 
-CMD ["/app/entrypoint.sh"]
+CMD ["./entrypoint.sh"]
