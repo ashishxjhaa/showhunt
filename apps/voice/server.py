@@ -21,13 +21,46 @@ from ice import load_ice_servers
 
 load_dotenv(override=True)
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+def _normalize_origin(value: str) -> str:
+    return value.strip().rstrip("/")
+
+
+def load_cors_origins() -> list[str]:
+    """Origins allowed to call /api/offer from the browser."""
+    origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+    frontend = os.getenv("FRONTEND_URL", "").strip()
+    if frontend:
+        origins.append(_normalize_origin(frontend))
+
+    # Comma-separated extras, e.g. https://showhunt.ashishjha.xyz,https://www...
+    extra = os.getenv("CORS_ORIGINS", "").strip()
+    if extra:
+        for part in extra.split(","):
+            if part.strip():
+                origins.append(_normalize_origin(part))
+
+    # De-dupe, keep order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for origin in origins:
+        if origin and origin not in seen:
+            seen.add(origin)
+            unique.append(origin)
+    return unique
+
+
+CORS_ORIGINS = load_cors_origins()
 small_webrtc_handler = SmallWebRTCRequestHandler(ice_servers=load_ice_servers())
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info(f"Voice CORS allow_origins={CORS_ORIGINS}")
     yield
     await small_webrtc_handler.close()
 
@@ -36,11 +69,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        FRONTEND_URL,
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,7 +79,7 @@ app.add_middleware(
 @app.get("/")
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "showhunt-voice"}
+    return {"status": "ok", "service": "showhunt-voice", "cors": CORS_ORIGINS}
 
 
 @app.post("/api/offer")
