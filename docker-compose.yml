@@ -29,8 +29,8 @@ services:
 
   voice:
     build:
-      context: .
-      dockerfile: apps/voice/Dockerfile
+      context: apps/voice
+      dockerfile: Dockerfile
     ports:
       - "7860:7860"
     environment:
