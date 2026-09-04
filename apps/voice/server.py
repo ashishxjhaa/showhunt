@@ -7,17 +7,10 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import BackgroundTasks, FastAPI
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from loguru import logger
-from pipecat.transports.smallwebrtc.request_handler import (
-    SmallWebRTCPatchRequest,
-    SmallWebRTCRequest,
-    SmallWebRTCRequestHandler,
-)
-
-from bot import run_bot
-from ice import load_ice_servers
 
 load_dotenv(override=True)
 
@@ -27,24 +20,19 @@ def _normalize_origin(value: str) -> str:
 
 
 def load_cors_origins() -> list[str]:
-    """Origins allowed to call /api/offer from the browser."""
     origins: list[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://showhunt.ashishjha.xyz",
     ]
-
     frontend = os.getenv("FRONTEND_URL", "").strip()
     if frontend:
         origins.append(_normalize_origin(frontend))
-
-    # Comma-separated extras, e.g. https://showhunt.ashishjha.xyz,https://www...
     extra = os.getenv("CORS_ORIGINS", "").strip()
     if extra:
         for part in extra.split(","):
             if part.strip():
                 origins.append(_normalize_origin(part))
-
-    # De-dupe, keep order
     seen: set[str] = set()
     unique: list[str] = []
     for origin in origins:
@@ -55,14 +43,37 @@ def load_cors_origins() -> list[str]:
 
 
 CORS_ORIGINS = load_cors_origins()
-small_webrtc_handler = SmallWebRTCRequestHandler(ice_servers=load_ice_servers())
+
+# Lazy-loaded so /health works even if ICE/bot deps fail during import.
+_small_webrtc_handler = None
+
+
+def get_webrtc_handler():
+    global _small_webrtc_handler
+    if _small_webrtc_handler is not None:
+        return _small_webrtc_handler
+
+    from pipecat.transports.smallwebrtc.request_handler import SmallWebRTCRequestHandler
+    from ice import load_ice_servers
+
+    _small_webrtc_handler = SmallWebRTCRequestHandler(ice_servers=load_ice_servers())
+    return _small_webrtc_handler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    port = os.getenv("PORT") or os.getenv("VOICE_PORT", "7860")
+    logger.info(f"ShowHunt voice starting on 0.0.0.0:{port}")
     logger.info(f"Voice CORS allow_origins={CORS_ORIGINS}")
+    try:
+        get_webrtc_handler()
+        logger.info("WebRTC handler ready")
+    except Exception:
+        logger.exception("WebRTC handler failed to init (health still up)")
     yield
-    await small_webrtc_handler.close()
+    handler = _small_webrtc_handler
+    if handler is not None:
+        await handler.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -79,24 +90,56 @@ app.add_middleware(
 @app.get("/")
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "showhunt-voice", "cors": CORS_ORIGINS}
+    return {
+        "status": "ok",
+        "service": "showhunt-voice",
+        "cors": CORS_ORIGINS,
+        "webrtc_ready": _small_webrtc_handler is not None,
+    }
 
 
 @app.post("/api/offer")
-async def offer(request: SmallWebRTCRequest, background_tasks: BackgroundTasks):
+async def offer(request: Request, background_tasks: BackgroundTasks):
+    from pipecat.transports.smallwebrtc.request_handler import SmallWebRTCRequest
+    from bot import run_bot
+
+    try:
+        handler = get_webrtc_handler()
+    except Exception as err:
+        logger.exception("WebRTC handler unavailable")
+        return JSONResponse(
+            {"ok": False, "error": f"Voice WebRTC failed to start: {err}"},
+            status_code=503,
+        )
+
+    body = await request.json()
+    webrtc_request = SmallWebRTCRequest(**body)
+
     async def webrtc_connection_callback(connection):
         background_tasks.add_task(run_bot, connection)
 
-    answer = await small_webrtc_handler.handle_web_request(
-        request=request,
+    answer = await handler.handle_web_request(
+        request=webrtc_request,
         webrtc_connection_callback=webrtc_connection_callback,
     )
     return answer
 
 
 @app.patch("/api/offer")
-async def ice_candidate(request: SmallWebRTCPatchRequest):
-    await small_webrtc_handler.handle_patch_request(request)
+async def ice_candidate(request: Request):
+    from pipecat.transports.smallwebrtc.request_handler import SmallWebRTCPatchRequest
+
+    try:
+        handler = get_webrtc_handler()
+    except Exception as err:
+        return JSONResponse(
+            {"ok": False, "error": f"Voice WebRTC failed to start: {err}"},
+            status_code=503,
+        )
+
+    body = await request.json()
+    patch = SmallWebRTCPatchRequest(**body)
+    await handler.handle_patch_request(patch)
     return {"status": "success"}
 
 
