@@ -1,4 +1,5 @@
 # ShowHunt voice signaling server (Small WebRTC).
+# Keep startup light: never import Pipecat before the server is listening.
 
 import argparse
 import os
@@ -34,50 +35,40 @@ def load_cors_origins() -> list[str]:
             if part.strip():
                 origins.append(_normalize_origin(part))
     seen: set[str] = set()
-    unique: list[str] = []
+    out: list[str] = []
     for origin in origins:
         if origin and origin not in seen:
             seen.add(origin)
-            unique.append(origin)
-    return unique
+            out.append(origin)
+    return out
 
 
 CORS_ORIGINS = load_cors_origins()
-
-# Lazy-loaded so /health works even if ICE/bot deps fail during import.
-_small_webrtc_handler = None
+_webrtc_handler = None
 
 
 def get_webrtc_handler():
-    global _small_webrtc_handler
-    if _small_webrtc_handler is not None:
-        return _small_webrtc_handler
-
+    """Import Pipecat only on first voice call — never during boot."""
+    global _webrtc_handler
+    if _webrtc_handler is not None:
+        return _webrtc_handler
     from pipecat.transports.smallwebrtc.request_handler import SmallWebRTCRequestHandler
     from ice import load_ice_servers
 
-    _small_webrtc_handler = SmallWebRTCRequestHandler(ice_servers=load_ice_servers())
-    return _small_webrtc_handler
+    _webrtc_handler = SmallWebRTCRequestHandler(ice_servers=load_ice_servers())
+    return _webrtc_handler
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    port = os.getenv("PORT") or os.getenv("VOICE_PORT", "7860")
-    logger.info(f"ShowHunt voice starting on 0.0.0.0:{port}")
+async def lifespan(_app: FastAPI):
+    # Yield immediately so Railway can health-check / bind PORT.
     logger.info(f"Voice CORS allow_origins={CORS_ORIGINS}")
-    try:
-        get_webrtc_handler()
-        logger.info("WebRTC handler ready")
-    except Exception:
-        logger.exception("WebRTC handler failed to init (health still up)")
     yield
-    handler = _small_webrtc_handler
-    if handler is not None:
-        await handler.close()
+    if _webrtc_handler is not None:
+        await _webrtc_handler.close()
 
 
 app = FastAPI(lifespan=lifespan)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -94,7 +85,7 @@ async def health():
         "status": "ok",
         "service": "showhunt-voice",
         "cors": CORS_ORIGINS,
-        "webrtc_ready": _small_webrtc_handler is not None,
+        "webrtc_ready": _webrtc_handler is not None,
     }
 
 
@@ -106,23 +97,19 @@ async def offer(request: Request, background_tasks: BackgroundTasks):
     try:
         handler = get_webrtc_handler()
     except Exception as err:
-        logger.exception("WebRTC handler unavailable")
-        return JSONResponse(
-            {"ok": False, "error": f"Voice WebRTC failed to start: {err}"},
-            status_code=503,
-        )
+        logger.exception("WebRTC init failed")
+        return JSONResponse({"ok": False, "error": str(err)}, status_code=503)
 
     body = await request.json()
     webrtc_request = SmallWebRTCRequest(**body)
 
-    async def webrtc_connection_callback(connection):
+    async def on_connection(connection):
         background_tasks.add_task(run_bot, connection)
 
-    answer = await handler.handle_web_request(
+    return await handler.handle_web_request(
         request=webrtc_request,
-        webrtc_connection_callback=webrtc_connection_callback,
+        webrtc_connection_callback=on_connection,
     )
-    return answer
 
 
 @app.patch("/api/offer")
@@ -132,29 +119,34 @@ async def ice_candidate(request: Request):
     try:
         handler = get_webrtc_handler()
     except Exception as err:
-        return JSONResponse(
-            {"ok": False, "error": f"Voice WebRTC failed to start: {err}"},
-            status_code=503,
-        )
+        return JSONResponse({"ok": False, "error": str(err)}, status_code=503)
 
     body = await request.json()
-    patch = SmallWebRTCPatchRequest(**body)
-    await handler.handle_patch_request(patch)
+    await handler.handle_patch_request(SmallWebRTCPatchRequest(**body))
     return {"status": "success"}
 
 
-if __name__ == "__main__":
+def main() -> None:
     parser = argparse.ArgumentParser(description="ShowHunt voice agent")
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=int(os.getenv("PORT") or os.getenv("VOICE_PORT", "7860")),
-    )
+    parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--verbose", "-v", action="count")
     args = parser.parse_args()
 
-    logger.remove(0)
-    logger.add(sys.stderr, level="TRACE" if args.verbose else "INFO")
+    port = args.port or int(os.getenv("PORT") or os.getenv("VOICE_PORT") or "7860")
 
-    uvicorn.run(app, host=args.host, port=args.port)
+    logger.remove()
+    logger.add(sys.stderr, level="TRACE" if args.verbose else "INFO")
+    logger.info(f"Starting ShowHunt voice on {args.host}:{port}")
+
+    uvicorn.run(
+        app,
+        host=args.host,
+        port=port,
+        proxy_headers=True,
+        forwarded_allow_ips="*",
+    )
+
+
+if __name__ == "__main__":
+    main()
