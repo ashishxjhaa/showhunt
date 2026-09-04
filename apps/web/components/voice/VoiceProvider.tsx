@@ -16,6 +16,7 @@ import { SmallWebRTCTransport } from "@pipecat-ai/small-webrtc-transport"
 import VoicePet from "@/components/voice/VoicePet"
 import { useVoiceSite } from "@/components/voice/VoiceSiteContext"
 import { executeVoiceTool } from "@/lib/voice/execute-tool"
+import { loadVoiceIceServers } from "@/lib/voice/ice-servers"
 import type { VoiceSessionState, VoiceToolName } from "@/lib/voice/types"
 
 const VOICE_URL =
@@ -73,7 +74,9 @@ function playNotify() {
 function createClient() {
   return new PipecatClient({
     transport: new SmallWebRTCTransport({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      // STUN alone fails behind Railway NAT — include TURN via NEXT_PUBLIC_VOICE_ICE_SERVERS.
+      iceServers: loadVoiceIceServers(),
+      waitForICEGathering: true,
     }),
     enableMic: true,
     enableCam: false,

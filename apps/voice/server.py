@@ -17,12 +17,13 @@ from pipecat.transports.smallwebrtc.request_handler import (
 )
 
 from bot import run_bot
+from ice import load_ice_servers
 
 load_dotenv(override=True)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-small_webrtc_handler = SmallWebRTCRequestHandler()
+small_webrtc_handler = SmallWebRTCRequestHandler(ice_servers=load_ice_servers())
 
 
 @asynccontextmanager
@@ -46,6 +47,7 @@ app.add_middleware(
 )
 
 
+@app.get("/")
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "showhunt-voice"}
@@ -72,7 +74,11 @@ async def ice_candidate(request: SmallWebRTCPatchRequest):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ShowHunt voice agent")
     parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=int(os.getenv("VOICE_PORT", "7860")))
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("PORT") or os.getenv("VOICE_PORT", "7860")),
+    )
     parser.add_argument("--verbose", "-v", action="count")
     args = parser.parse_args()
 

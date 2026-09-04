@@ -235,6 +235,8 @@ Shared / server essentials from `.env.example`:
 | `FRONTEND_URL` | server / voice | CORS + cookie origin (`http://localhost:3000`) |
 | `NEXT_PUBLIC_API_URL` | web | API base URL |
 | `NEXT_PUBLIC_VOICE_URL` | web | Voice worker URL |
+| `NEXT_PUBLIC_VOICE_ICE_SERVERS` | web | STUN/TURN JSON (must match voice `ICE_SERVERS`) |
+| `ICE_SERVERS` | voice | STUN/TURN JSON for Railway/production WebRTC |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | web | Google Sign-In |
 | `GOOGLE_CLIENT_ID` | server | Google token verification |
 | `DEEPSEEK_API_KEY` | server / voice | Listing enrichment + voice LLM |
@@ -242,6 +244,8 @@ Shared / server essentials from `.env.example`:
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_REGION` / `S3_BUCKET_NAME` | server | Media uploads |
 
 Voice-only minimum: `SARVAM_API_KEY`, `DEEPSEEK_API_KEY`, and `NEXT_PUBLIC_VOICE_URL=http://localhost:7860` in `apps/web/.env`.
+
+**Production voice (Railway):** `/api/offer` alone is not enough. WebRTC media needs a **TURN** server because Railway peers sit behind NAT. Set the **same** ICE JSON on Railway (`ICE_SERVERS`) and Vercel (`NEXT_PUBLIC_VOICE_ICE_SERVERS`), then redeploy both. Free TURN: [Metered Open Relay](https://www.metered.ca/tools/openrelay/). Also set `FRONTEND_URL` on Railway to your Vercel origin.
 
 ---
 
